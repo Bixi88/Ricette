@@ -60,12 +60,11 @@
     <div class="px-6 pt-8 pb-4 flex items-start justify-between gap-3">
       <div>
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Il mio ricettario</h1>
-        <p id="recipe-count" class="text-gray-400 dark:text-gray-500 text-sm mt-1">0 ricette salvate</p>
       </div>
       <button onclick="toggleTheme()" id="theme-toggle-btn" aria-label="Cambia tema chiaro/scuro"
-              class="w-14 h-8 flex-shrink-0 rounded-full bg-gray-300 dark:bg-emerald-500/80 relative transition-colors duration-300 mt-2">
+              class="w-7 h-4 flex-shrink-0 rounded-full bg-gray-300 dark:bg-emerald-500/80 relative transition-colors duration-300 mt-2">
         <span id="theme-toggle-knob"
-              class="absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow-md transition-transform duration-300 ease-in-out dark:translate-x-6"></span>
+              class="absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white shadow-md transition-transform duration-300 ease-in-out dark:translate-x-3"></span>
       </button>
     </div>
 
@@ -73,7 +72,7 @@
     <div class="px-6 mb-4">
       <div class="relative flex items-center">
         <i class="fa-solid fa-magnifying-glass absolute left-4 text-gray-400"></i>
-        <input type="text" id="search-input" onkeyup="filterRecipes()" placeholder="Cerca per ingrediente, es. lenticchie" 
+        <input type="text" id="search-input" onkeyup="filterRecipes()" placeholder="" 
                class="w-full bg-gray-100 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-emerald-400">
       </div>
     </div>
@@ -172,10 +171,10 @@
       </div>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Incolla il testo grezzo della ricetta. L'AI la analizzerà e la strutturerà automaticamente!</p>
       
-      <textarea id="raw-recipe-text" rows="6" placeholder="Es: Torta Margherita. Servono 200g di farina, 3 uova, 150g di zucchero. Cuocere a 180 gradi per 40 min..." 
+      <textarea id="raw-recipe-text" rows="6" placeholder="" 
                 class="w-full border dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:placeholder-gray-500 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 mb-4"></textarea>
 
-      <button id="btn-submit" onclick="submitRecipe()" class="w-full bg-emerald-400 hover:bg-emerald-500 text-white font-semibold py-3 rounded-2xl transition flex justify-center items-center gap-2">
+      <button id="btn-submit" onclick="submitRecipe()" class="w-full bg-emerald-400 hover:bg-emerald-500 text-black font-semibold py-3 rounded-2xl transition flex justify-center items-center gap-2">
         <span>Elabora con AI</span>
       </button>
     </div>
@@ -251,8 +250,7 @@
         return matchCat && matchSearch;
       });
 
-      document.getElementById("recipe-count").innerText = `${allRecipes.length} ricette salvate`;
-
+      
       if (filtered.length === 0) {
         grid.innerHTML = `<div class="col-span-2 text-center text-gray-400 py-10">Nessuna ricetta trovata</div>`;
         return;
