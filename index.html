@@ -14,22 +14,58 @@
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3565/3565418.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
+  <script>
+    // Applica subito il tema salvato (o quello di sistema) per evitare un flash del tema sbagliato
+    (function() {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Impedisce lo scroll "elastico" del browser che innesca il refresh della pagina/PWA */
+    html, body {
+      overscroll-behavior-y: none;
+    }
+
+    /* Impedisce la selezione del testo per mantenere l'esperienza da app nativa */
+    body {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Eccezione: i campi di input/modifica devono restare selezionabili */
+    input, textarea, [contenteditable="true"] {
+      -webkit-user-select: text;
+      user-select: text;
+    }
   </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex justify-center items-center p-0 md:p-4">
+<body class="bg-gray-100 dark:bg-gray-950 min-h-screen flex justify-center items-center p-0 md:p-4 transition-colors">
 
   <!-- Mobile Frame Container -->
-  <div class="w-full max-w-md bg-white min-h-screen md:min-h-[844px] md:max-h-[844px] md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative">
+  <div class="w-full max-w-md bg-white dark:bg-gray-900 min-h-screen md:min-h-[844px] md:max-h-[844px] md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative transition-colors">
 
     <!-- Header -->
-    <div class="px-6 pt-8 pb-4">
-      <h1 class="text-3xl font-bold text-gray-900">Il mio ricettario</h1>
-      <p id="recipe-count" class="text-gray-400 text-sm mt-1">0 ricette salvate</p>
+    <div class="px-6 pt-8 pb-4 flex items-start justify-between gap-3">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Il mio ricettario</h1>
+        <p id="recipe-count" class="text-gray-400 dark:text-gray-500 text-sm mt-1">0 ricette salvate</p>
+      </div>
+      <button onclick="toggleTheme()" id="theme-toggle-btn" aria-label="Cambia tema chiaro/scuro"
+              class="w-10 h-10 flex-shrink-0 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mt-1 transition">
+        <i id="theme-toggle-icon" class="fa-solid fa-moon text-gray-700 text-sm"></i>
+      </button>
     </div>
 
     <!-- Search Bar -->
@@ -37,20 +73,25 @@
       <div class="relative flex items-center">
         <i class="fa-solid fa-magnifying-glass absolute left-4 text-gray-400"></i>
         <input type="text" id="search-input" onkeyup="filterRecipes()" placeholder="Cerca per ingrediente, es. lenticchie" 
-               class="w-full bg-gray-100 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+               class="w-full bg-gray-100 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-emerald-400">
       </div>
     </div>
 
     <!-- Categories Pills -->
     <div class="px-6 mb-6 flex gap-2 overflow-x-auto no-scrollbar">
-      <button onclick="setCategory('Tutti')" class="cat-btn bg-black text-white px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Tutti</button>
-      <button onclick="setCategory('Dolci')" class="cat-btn bg-gray-100 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Dolci</button>
-      <button onclick="setCategory('Primi')" class="cat-btn bg-gray-100 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Primi</button>
-      <button onclick="setCategory('Secondi')" class="cat-btn bg-gray-100 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Secondi</button>
+      <button onclick="setCategory('Tutti')" class="cat-btn bg-black dark:bg-white text-white dark:text-black px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Tutti</button>
+      <button onclick="setCategory('Dolci')" class="cat-btn bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Dolci</button>
+      <button onclick="setCategory('Primi')" class="cat-btn bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Primi</button>
+      <button onclick="setCategory('Secondi')" class="cat-btn bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Secondi</button>
+    </div>
+
+    <!-- Banner modalità offline (mostrato quando si usano le ricette dalla cache locale) -->
+    <div id="offline-banner" class="hidden mx-6 mb-4 px-4 py-2 bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-xs font-semibold rounded-xl flex items-center gap-2">
+      <i class="fa-solid fa-wifi"></i> Sei offline: ricette caricate dalla cache locale
     </div>
 
     <!-- Recipes Grid -->
-    <div id="recipes-grid" class="px-6 flex-1 overflow-y-auto grid grid-cols-2 auto-rows-min content-start gap-4 pb-24">
+    <div id="recipes-grid" class="px-6 flex-1 overflow-y-auto overscroll-contain grid grid-cols-2 auto-rows-min content-start gap-4 pb-24">
       <!-- Le ricette verranno caricate qui dinamicamente -->
     </div>
 
@@ -60,32 +101,32 @@
     </button>
 
     <!-- Scheda Ricetta Singola -->
-    <div id="recipe-detail" class="absolute inset-0 bg-white flex flex-col overflow-y-auto z-40 translate-y-full transition-transform duration-300 ease-out">
+    <div id="recipe-detail" class="absolute inset-0 bg-white dark:bg-gray-900 flex flex-col overflow-y-auto overscroll-contain z-40 translate-y-full transition-transform duration-300 ease-out">
       <div class="relative h-64 flex-shrink-0">
         <img id="rd-image" src="" class="w-full h-full object-cover">
-        <button onclick="closeRecipeDetail()" class="absolute top-6 left-4 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow">
-          <i class="fa-solid fa-chevron-left text-sm"></i>
+        <button onclick="closeRecipeDetail()" class="absolute top-6 left-4 w-9 h-9 bg-white/90 dark:bg-gray-800/90 rounded-full flex items-center justify-center shadow">
+          <i class="fa-solid fa-chevron-left text-sm dark:text-white"></i>
         </button>
-        <button onclick="triggerPhotoChange()" class="absolute top-6 right-4 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow">
-          <i class="fa-solid fa-camera text-sm"></i>
+        <button onclick="triggerPhotoChange()" class="absolute top-6 right-4 w-9 h-9 bg-white/90 dark:bg-gray-800/90 rounded-full flex items-center justify-center shadow">
+          <i class="fa-solid fa-camera text-sm dark:text-white"></i>
         </button>
-        <button id="rd-edit-btn" onclick="enterEditMode()" class="absolute top-6 right-16 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow">
-          <i class="fa-solid fa-pen text-sm"></i>
+        <button id="rd-edit-btn" onclick="enterEditMode()" class="absolute top-6 right-16 w-9 h-9 bg-white/90 dark:bg-gray-800/90 rounded-full flex items-center justify-center shadow">
+          <i class="fa-solid fa-pen text-sm dark:text-white"></i>
         </button>
         <input type="file" id="rd-photo-input" accept="image/*" class="hidden" onchange="onPhotoSelected(event)">
       </div>
 
-      <div class="bg-white rounded-t-[28px] -mt-6 relative flex-1 px-6 pt-6 pb-10">
+      <div class="bg-white dark:bg-gray-900 rounded-t-[28px] -mt-6 relative flex-1 px-6 pt-6 pb-10">
 
         <div id="rd-edit-actions" class="hidden gap-3 mb-4">
-          <button onclick="cancelEditMode()" class="flex-1 bg-gray-100 text-gray-700 font-semibold py-3 rounded-2xl">Annulla</button>
+          <button onclick="cancelEditMode()" class="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-2xl">Annulla</button>
           <button id="rd-save-btn" onclick="saveRecipeEdits()" class="flex-1 bg-emerald-400 hover:bg-emerald-500 text-white font-semibold py-3 rounded-2xl flex items-center justify-center gap-2">
             <i class="fa-solid fa-check"></i> Salva
           </button>
         </div>
 
-        <span id="rd-category" class="inline-block bg-emerald-100 text-emerald-700 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3"></span>
-        <select id="rd-category-select" class="hidden border rounded-xl px-3 py-2 text-sm mb-3">
+        <span id="rd-category" class="inline-block bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3"></span>
+        <select id="rd-category-select" class="hidden border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-3 py-2 text-sm mb-3">
           <option value="Antipasti">Antipasti</option>
           <option value="Primi">Primi</option>
           <option value="Secondi">Secondi</option>
@@ -93,17 +134,17 @@
           <option value="Dolci">Dolci</option>
         </select>
 
-        <h2 id="rd-title" class="text-2xl font-bold text-gray-900 mb-5 leading-tight"></h2>
-        <input id="rd-title-input" type="text" class="hidden w-full border rounded-xl px-3 py-2 text-xl font-bold text-gray-900 mb-5">
+        <h2 id="rd-title" class="text-2xl font-bold text-gray-900 dark:text-white mb-5 leading-tight"></h2>
+        <input id="rd-title-input" type="text" class="hidden w-full border dark:border-gray-700 dark:bg-gray-800 rounded-xl px-3 py-2 text-xl font-bold text-gray-900 dark:text-white mb-5">
 
         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Ingredienti</h3>
-        <div id="rd-ingredients" class="divide-y divide-gray-100 mb-6"></div>
+        <div id="rd-ingredients" class="divide-y divide-gray-100 dark:divide-gray-800 mb-6"></div>
 
         <h3 id="rd-instructions-label" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Preparazione</h3>
-        <ol id="rd-instructions" class="space-y-3 text-base font-medium text-gray-800 mb-6 list-decimal list-inside leading-relaxed"></ol>
+        <ol id="rd-instructions" class="space-y-3 text-base font-medium text-gray-800 dark:text-gray-200 mb-6 list-decimal list-inside leading-relaxed"></ol>
 
-        <p id="rd-description" class="text-sm text-gray-500 leading-relaxed"></p>
-        <textarea id="rd-description-input" rows="3" class="hidden w-full border rounded-xl px-3 py-2 text-sm text-gray-600 leading-relaxed"></textarea>
+        <p id="rd-description" class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed"></p>
+        <textarea id="rd-description-input" rows="3" class="hidden w-full border dark:border-gray-700 dark:bg-gray-800 rounded-xl px-3 py-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed"></textarea>
       </div>
     </div>
 
@@ -111,11 +152,11 @@
 
   <!-- Popup conferma eliminazione -->
   <div id="delete-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center hidden z-[60]">
-    <div class="bg-white w-[85%] max-w-xs rounded-3xl p-6 shadow-xl text-center">
-      <h3 class="text-lg font-bold text-gray-900 mb-2">Eliminare la ricetta?</h3>
-      <p id="delete-modal-text" class="text-sm text-gray-500 mb-6">Questa azione non può essere annullata.</p>
+    <div class="bg-white dark:bg-gray-800 w-[85%] max-w-xs rounded-3xl p-6 shadow-xl text-center">
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Eliminare la ricetta?</h3>
+      <p id="delete-modal-text" class="text-sm text-gray-500 dark:text-gray-400 mb-6">Questa azione non può essere annullata.</p>
       <div class="flex gap-3">
-        <button onclick="cancelDeleteRecipe()" class="flex-1 bg-gray-100 text-gray-700 font-semibold py-3 rounded-2xl">Annulla</button>
+        <button onclick="cancelDeleteRecipe()" class="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-2xl">Annulla</button>
         <button onclick="confirmDeleteRecipe()" class="flex-1 bg-red-500 text-white font-semibold py-3 rounded-2xl">Elimina</button>
       </div>
     </div>
@@ -123,15 +164,15 @@
 
   <!-- Modal Inserimento Ricetta -->
   <div id="modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center hidden z-50">
-    <div class="bg-white w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-xl font-bold">Aggiungi nuova ricetta</h3>
-        <button onclick="toggleModal(false)" class="text-gray-400 hover:text-black"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <h3 class="text-xl font-bold dark:text-white">Aggiungi nuova ricetta</h3>
+        <button onclick="toggleModal(false)" class="text-gray-400 hover:text-black dark:hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
       </div>
-      <p class="text-sm text-gray-500 mb-4">Incolla il testo grezzo della ricetta. L'AI la analizzerà e la strutturerà automaticamente!</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Incolla il testo grezzo della ricetta. L'AI la analizzerà e la strutturerà automaticamente!</p>
       
       <textarea id="raw-recipe-text" rows="6" placeholder="Es: Torta Margherita. Servono 200g di farina, 3 uova, 150g di zucchero. Cuocere a 180 gradi per 40 min..." 
-                class="w-full border rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 mb-4"></textarea>
+                class="w-full border dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:placeholder-gray-500 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 mb-4"></textarea>
 
       <button id="btn-submit" onclick="submitRecipe()" class="w-full bg-emerald-400 hover:bg-emerald-500 text-white font-semibold py-3 rounded-2xl transition flex justify-center items-center gap-2">
         <span>Elabora con AI</span>
@@ -154,14 +195,46 @@
       });
     }
 
-    // Carica ricette all'avvio
+    // ==========================================
+    // Cache di sicurezza offline (localStorage)
+    // ==========================================
+    const RECIPES_CACHE_KEY = "recipes_cache_v1";
+
+    function saveRecipesCache(recipes) {
+      try { localStorage.setItem(RECIPES_CACHE_KEY, JSON.stringify(recipes)); } catch (e) {}
+    }
+
+    function loadRecipesCache() {
+      try {
+        const raw = localStorage.getItem(RECIPES_CACHE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function showOfflineBanner(show) {
+      const banner = document.getElementById("offline-banner");
+      if (banner) banner.classList.toggle("hidden", !show);
+    }
+
+    // Carica ricette all'avvio: se non c'è internet, usa l'ultima copia salvata localmente
     async function loadRecipes() {
       try {
         const res = await fetch(`${WORKER_URL}/api/recipes`);
+        if (!res.ok) throw new Error("Risposta non valida dal server");
         allRecipes = await res.json();
+        saveRecipesCache(allRecipes);
+        showOfflineBanner(false);
         renderRecipes();
       } catch (err) {
-        console.error("Errore nel caricamento delle ricette:", err);
+        console.error("Errore nel caricamento delle ricette, provo dalla cache locale:", err);
+        const cached = loadRecipesCache();
+        if (cached) {
+          allRecipes = cached;
+          showOfflineBanner(true);
+        }
+        renderRecipes();
       }
     }
 
@@ -192,14 +265,14 @@
                onmousedown="startLongPress('${r.id}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()"
                ontouchstart="startLongPress('${r.id}')" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()"
                oncontextmenu="return false;"
-               class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm flex flex-col cursor-pointer active:scale-[0.97] transition select-none">
-            <div class="relative h-32 bg-gray-200">
+               class="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col cursor-pointer active:scale-[0.97] transition select-none">
+            <div class="relative h-32 bg-gray-200 dark:bg-gray-700">
               <img src="${img}" class="w-full h-full object-cover">
-              <span class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-gray-700">${r.category}</span>
+              <span class="absolute top-2 left-2 bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-gray-700 dark:text-gray-200">${r.category}</span>
             </div>
             <div class="p-3 flex flex-col justify-between flex-1">
-              <h4 class="font-bold text-sm text-gray-900 leading-tight mb-2">${r.title}</h4>
-              <p class="text-xs text-gray-400"><i class="fa-regular fa-clock mr-1"></i>${r.prep_time_min} min</p>
+              <h4 class="font-bold text-sm text-gray-900 dark:text-white leading-tight mb-2">${r.title}</h4>
+              <p class="text-xs text-gray-400 dark:text-gray-500"><i class="fa-regular fa-clock mr-1"></i>${r.prep_time_min} min</p>
             </div>
           </div>
         `;
@@ -231,12 +304,29 @@
       currentCategory = cat;
       document.querySelectorAll('.cat-btn').forEach(btn => {
         if(btn.innerText === cat) {
-          btn.className = "cat-btn bg-black text-white px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
+          btn.className = "cat-btn bg-black dark:bg-white text-white dark:text-black px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
         } else {
-          btn.className = "cat-btn bg-gray-100 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
+          btn.className = "cat-btn bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
         }
       });
       renderRecipes();
+    }
+
+    // ==========================================
+    // Tema chiaro / scuro
+    // ==========================================
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch (e) {}
+      updateThemeIcon(isDark);
+    }
+
+    function updateThemeIcon(isDark) {
+      const icon = document.getElementById('theme-toggle-icon');
+      if (!icon) return;
+      icon.className = isDark
+        ? "fa-solid fa-sun text-yellow-300 text-sm"
+        : "fa-solid fa-moon text-gray-700 text-sm";
     }
 
     function filterRecipes() {
@@ -536,6 +626,7 @@
       currentDetailRecipe = updated;
       const idx = allRecipes.findIndex(r => r.id === updated.id);
       if (idx !== -1) allRecipes[idx] = updated;
+      saveRecipesCache(allRecipes);
 
       resetEditUI();
       document.getElementById("rd-category").innerText = updated.category;
@@ -608,6 +699,7 @@
       } catch (e) {}
 
       allRecipes = allRecipes.filter(r => r.id !== id);
+      saveRecipesCache(allRecipes);
       renderRecipes();
       cancelDeleteRecipe();
     }
@@ -646,6 +738,7 @@
       }
     }
 
+    updateThemeIcon(document.documentElement.classList.contains('dark'));
     loadRecipes();
   </script>
 </body>
