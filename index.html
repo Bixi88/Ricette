@@ -69,12 +69,32 @@
         <button onclick="triggerPhotoChange()" class="absolute top-6 right-4 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow">
           <i class="fa-solid fa-camera text-sm"></i>
         </button>
+        <button id="rd-edit-btn" onclick="enterEditMode()" class="absolute top-6 right-16 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow">
+          <i class="fa-solid fa-pen text-sm"></i>
+        </button>
         <input type="file" id="rd-photo-input" accept="image/*" class="hidden" onchange="onPhotoSelected(event)">
       </div>
 
       <div class="bg-white rounded-t-[28px] -mt-6 relative flex-1 px-6 pt-6 pb-10">
+
+        <div id="rd-edit-actions" class="hidden gap-3 mb-4">
+          <button onclick="cancelEditMode()" class="flex-1 bg-gray-100 text-gray-700 font-semibold py-3 rounded-2xl">Annulla</button>
+          <button id="rd-save-btn" onclick="saveRecipeEdits()" class="flex-1 bg-emerald-400 hover:bg-emerald-500 text-white font-semibold py-3 rounded-2xl flex items-center justify-center gap-2">
+            <i class="fa-solid fa-check"></i> Salva
+          </button>
+        </div>
+
         <span id="rd-category" class="inline-block bg-emerald-100 text-emerald-700 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3"></span>
+        <select id="rd-category-select" class="hidden border rounded-xl px-3 py-2 text-sm mb-3">
+          <option value="Antipasti">Antipasti</option>
+          <option value="Primi">Primi</option>
+          <option value="Secondi">Secondi</option>
+          <option value="Contorni">Contorni</option>
+          <option value="Dolci">Dolci</option>
+        </select>
+
         <h2 id="rd-title" class="text-2xl font-bold text-gray-900 mb-5 leading-tight"></h2>
+        <input id="rd-title-input" type="text" class="hidden w-full border rounded-xl px-3 py-2 text-xl font-bold text-gray-900 mb-5">
 
         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Ingredienti</h3>
         <div id="rd-ingredients" class="divide-y divide-gray-100 mb-6"></div>
@@ -83,6 +103,7 @@
         <ol id="rd-instructions" class="space-y-3 text-base font-medium text-gray-800 mb-6 list-decimal list-inside leading-relaxed"></ol>
 
         <p id="rd-description" class="text-sm text-gray-500 leading-relaxed"></p>
+        <textarea id="rd-description-input" rows="3" class="hidden w-full border rounded-xl px-3 py-2 text-sm text-gray-600 leading-relaxed"></textarea>
       </div>
     </div>
 
@@ -107,7 +128,7 @@
         <h3 class="text-xl font-bold">Aggiungi nuova ricetta</h3>
         <button onclick="toggleModal(false)" class="text-gray-400 hover:text-black"><i class="fa-solid fa-xmark text-xl"></i></button>
       </div>
-      <p class="text-sm text-gray-500 mb-4">Incolla il testo grezzo della ricetta. Gemini la analizzerà e la strutturerà automaticamente!</p>
+      <p class="text-sm text-gray-500 mb-4">Incolla il testo grezzo della ricetta. L'AI la analizzerà e la strutturerà automaticamente!</p>
       
       <textarea id="raw-recipe-text" rows="6" placeholder="Es: Torta Margherita. Servono 200g di farina, 3 uova, 150g di zucchero. Cuocere a 180 gradi per 40 min..." 
                 class="w-full border rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 mb-4"></textarea>
@@ -232,20 +253,13 @@
       if (!recipe) return;
 
       currentDetailRecipe = recipe;
+      resetEditUI();
 
       document.getElementById("rd-image").src = getRecipeImage(recipe);
       document.getElementById("rd-category").innerText = recipe.category;
       document.getElementById("rd-title").innerText = recipe.title;
 
-      const instructionsLabel = document.getElementById("rd-instructions-label");
-      const instructionsList = document.getElementById("rd-instructions");
-      if (Array.isArray(recipe.instructions) && recipe.instructions.length > 0) {
-        instructionsLabel.classList.remove("hidden");
-        instructionsList.innerHTML = recipe.instructions.map(step => `<li>${step}</li>`).join("");
-      } else {
-        instructionsLabel.classList.add("hidden");
-        instructionsList.innerHTML = "";
-      }
+      renderInstructionsView();
 
       document.getElementById("rd-description").innerText =
         recipe.description || `Pronta in circa ${recipe.prep_time_min} minuti.`;
@@ -284,6 +298,20 @@
         closeRecipeDetailInternal();
       }
     });
+
+    function renderInstructionsView() {
+      if (!currentDetailRecipe) return;
+      const instructionsLabel = document.getElementById("rd-instructions-label");
+      const instructionsList = document.getElementById("rd-instructions");
+      const recipe = currentDetailRecipe;
+      if (Array.isArray(recipe.instructions) && recipe.instructions.length > 0) {
+        instructionsLabel.classList.remove("hidden");
+        instructionsList.innerHTML = recipe.instructions.map(step => `<li>${escapeHtml(step)}</li>`).join("");
+      } else {
+        instructionsLabel.classList.add("hidden");
+        instructionsList.innerHTML = "";
+      }
+    }
 
     function renderIngredients() {
       if (!currentDetailRecipe) return;
@@ -333,6 +361,193 @@
       };
       reader.readAsDataURL(file);
       event.target.value = "";
+    }
+
+    // ==========================================
+    // Modalità di modifica ricetta
+    // ==========================================
+    let isEditingRecipe = false;
+    let editIngredients = [];
+    let editInstructions = [];
+
+    function escapeHtml(str) {
+      return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function escapeAttr(str) {
+      return escapeHtml(str).replace(/"/g, "&quot;");
+    }
+
+    // Nasconde i campi di modifica e ripristina la vista normale (usata anche all'apertura di una ricetta)
+    function resetEditUI() {
+      isEditingRecipe = false;
+      document.getElementById("rd-edit-btn").classList.remove("hidden");
+      document.getElementById("rd-edit-actions").classList.add("hidden");
+      document.getElementById("rd-edit-actions").classList.remove("flex");
+
+      document.getElementById("rd-title").classList.remove("hidden");
+      document.getElementById("rd-title-input").classList.add("hidden");
+      document.getElementById("rd-category").classList.remove("hidden");
+      document.getElementById("rd-category-select").classList.add("hidden");
+      document.getElementById("rd-description").classList.remove("hidden");
+      document.getElementById("rd-description-input").classList.add("hidden");
+    }
+
+    function enterEditMode() {
+      if (!currentDetailRecipe) return;
+      isEditingRecipe = true;
+      editIngredients = (currentDetailRecipe.ingredients || []).map(i => ({ ...i }));
+      editInstructions = [...(currentDetailRecipe.instructions || [])];
+
+      document.getElementById("rd-edit-btn").classList.add("hidden");
+      document.getElementById("rd-edit-actions").classList.remove("hidden");
+      document.getElementById("rd-edit-actions").classList.add("flex");
+
+      document.getElementById("rd-title").classList.add("hidden");
+      const titleInput = document.getElementById("rd-title-input");
+      titleInput.value = currentDetailRecipe.title || "";
+      titleInput.classList.remove("hidden");
+
+      document.getElementById("rd-category").classList.add("hidden");
+      const catSelect = document.getElementById("rd-category-select");
+      catSelect.value = currentDetailRecipe.category || "Primi";
+      catSelect.classList.remove("hidden");
+
+      document.getElementById("rd-description").classList.add("hidden");
+      const descInput = document.getElementById("rd-description-input");
+      descInput.value = currentDetailRecipe.description || "";
+      descInput.classList.remove("hidden");
+
+      renderIngredientsEditable();
+      renderInstructionsEditable();
+    }
+
+    function cancelEditMode() {
+      resetEditUI();
+      renderIngredients();
+      renderInstructionsView();
+    }
+
+    function renderIngredientsEditable() {
+      const list = document.getElementById("rd-ingredients");
+      list.innerHTML = editIngredients.map((ing, idx) => `
+        <div class="flex items-center gap-2 py-2">
+          <input type="text" value="${escapeAttr(ing.name)}" placeholder="Ingrediente"
+                 oninput="updateEditIngredient(${idx}, 'name', this.value)"
+                 class="flex-1 border rounded-xl px-3 py-2 text-sm">
+          <input type="number" step="0.1" value="${ing.quantity ?? ""}" placeholder="Qtà"
+                 oninput="updateEditIngredient(${idx}, 'quantity', this.value)"
+                 class="w-16 border rounded-xl px-2 py-2 text-sm">
+          <input type="text" value="${escapeAttr(ing.unit)}" placeholder="Unità"
+                 oninput="updateEditIngredient(${idx}, 'unit', this.value)"
+                 class="w-20 border rounded-xl px-2 py-2 text-sm">
+          <button onclick="removeIngredientRow(${idx})" class="text-red-400 w-8 h-8 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-trash text-sm"></i>
+          </button>
+        </div>
+      `).join("") + `
+        <button onclick="addIngredientRow()" class="mt-2 text-emerald-600 text-sm font-semibold flex items-center gap-1">
+          <i class="fa-solid fa-plus"></i> Aggiungi ingrediente
+        </button>
+      `;
+    }
+
+    function updateEditIngredient(idx, field, value) {
+      if (!editIngredients[idx]) return;
+      editIngredients[idx][field] = field === "quantity" ? (parseFloat(value.replace(",", ".")) || 0) : value;
+    }
+
+    function addIngredientRow() {
+      editIngredients.push({ name: "", quantity: 0, unit: "" });
+      renderIngredientsEditable();
+    }
+
+    function removeIngredientRow(idx) {
+      editIngredients.splice(idx, 1);
+      renderIngredientsEditable();
+    }
+
+    function renderInstructionsEditable() {
+      document.getElementById("rd-instructions-label").classList.remove("hidden");
+      const list = document.getElementById("rd-instructions");
+      list.innerHTML = editInstructions.map((step, idx) => `
+        <li class="flex items-start gap-2 list-none -ml-5">
+          <span class="text-gray-400 font-bold mt-2">${idx + 1}.</span>
+          <textarea oninput="updateEditInstruction(${idx}, this.value)" rows="2"
+                    class="flex-1 border rounded-xl px-3 py-2 text-sm">${escapeHtml(step)}</textarea>
+          <button onclick="removeInstructionStep(${idx})" class="text-red-400 w-8 h-8 flex items-center justify-center flex-shrink-0 mt-1">
+            <i class="fa-solid fa-trash text-sm"></i>
+          </button>
+        </li>
+      `).join("") + `
+        <li class="list-none -ml-5">
+          <button onclick="addInstructionStep()" class="text-emerald-600 text-sm font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-plus"></i> Aggiungi passaggio
+          </button>
+        </li>
+      `;
+    }
+
+    function updateEditInstruction(idx, value) {
+      editInstructions[idx] = value;
+    }
+
+    function addInstructionStep() {
+      editInstructions.push("");
+      renderInstructionsEditable();
+    }
+
+    function removeInstructionStep(idx) {
+      editInstructions.splice(idx, 1);
+      renderInstructionsEditable();
+    }
+
+    async function saveRecipeEdits() {
+      if (!currentDetailRecipe) return;
+      const saveBtn = document.getElementById("rd-save-btn");
+      const originalHtml = saveBtn.innerHTML;
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i>`;
+
+      const updated = {
+        ...currentDetailRecipe,
+        title: document.getElementById("rd-title-input").value.trim() || currentDetailRecipe.title,
+        category: document.getElementById("rd-category-select").value,
+        description: document.getElementById("rd-description-input").value.trim(),
+        ingredients: editIngredients.filter(i => (i.name || "").trim() !== ""),
+        instructions: editInstructions.map(s => s.trim()).filter(s => s !== "")
+      };
+
+      try {
+        const res = await fetch(`${WORKER_URL}/api/recipes/${updated.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updated)
+        });
+        if (!res.ok) throw new Error("Errore salvataggio");
+      } catch (e) {
+        alert("Errore durante il salvataggio della ricetta");
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalHtml;
+        return;
+      }
+
+      currentDetailRecipe = updated;
+      const idx = allRecipes.findIndex(r => r.id === updated.id);
+      if (idx !== -1) allRecipes[idx] = updated;
+
+      resetEditUI();
+      document.getElementById("rd-category").innerText = updated.category;
+      document.getElementById("rd-title").innerText = updated.title;
+      document.getElementById("rd-description").innerText =
+        updated.description || `Pronta in circa ${updated.prep_time_min} minuti.`;
+
+      renderIngredients();
+      renderInstructionsView();
+      renderRecipes();
+
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = originalHtml;
     }
 
     // ==========================================
@@ -406,7 +621,7 @@
 
       const btn = document.getElementById("btn-submit");
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Elaborazione Gemini...`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Elaborazione AI...`;
 
       try {
         const res = await fetch(`${WORKER_URL}/api/parse-recipe`, {
