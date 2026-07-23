@@ -424,12 +424,16 @@
       }).join("");
     }
 
-    // Arrotonda le quantità in modo leggibile (interi per i "pz")
+    // Arrotonda le quantità numeriche in modo leggibile; lascia invariato il testo libero (es. "1/2", "q.b.")
     function formatQuantity(value, unit) {
+      if (value === null || value === undefined || value === "") return "";
+      const num = Number(value);
+      const isPlainNumber = value !== "" && !isNaN(num) && /^-?\d+([.,]\d+)?$/.test(String(value).trim());
+      if (!isPlainNumber) return String(value).trim();
       if (unit === "pz" || unit === "pezzi") {
-        return Math.max(1, Math.round(value));
+        return Math.max(1, Math.round(num));
       }
-      const rounded = Math.round(value * 10) / 10;
+      const rounded = Math.round(num * 10) / 10;
       return rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
     }
 
@@ -531,9 +535,9 @@
           <input type="text" value="${escapeAttr(ing.name)}" placeholder="Ingrediente"
                  oninput="updateEditIngredient(${idx}, 'name', this.value)"
                  class="flex-1 min-w-0 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-2 py-2 text-sm">
-          <input type="number" step="0.1" value="${ing.quantity ?? ""}" placeholder="Qtà"
+          <input type="text" inputmode="text" value="${escapeAttr(ing.quantity ?? "")}" placeholder="Qtà"
                  oninput="updateEditIngredient(${idx}, 'quantity', this.value)"
-                 class="w-12 flex-shrink-0 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-1 py-2 text-sm text-center">
+                 class="w-14 flex-shrink-0 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-1 py-2 text-sm text-center">
           <input type="text" value="${escapeAttr(ing.unit)}" placeholder="Unità"
                  oninput="updateEditIngredient(${idx}, 'unit', this.value)"
                  class="w-14 flex-shrink-0 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-1 py-2 text-sm text-center">
@@ -550,11 +554,11 @@
 
     function updateEditIngredient(idx, field, value) {
       if (!editIngredients[idx]) return;
-      editIngredients[idx][field] = field === "quantity" ? (parseFloat(value.replace(",", ".")) || 0) : value;
+      editIngredients[idx][field] = value;
     }
 
     function addIngredientRow() {
-      editIngredients.push({ name: "", quantity: 0, unit: "" });
+      editIngredients.push({ name: "", quantity: "", unit: "" });
       renderIngredientsEditable();
     }
 
