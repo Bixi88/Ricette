@@ -24,18 +24,10 @@
 <body class="bg-gray-100 min-h-screen flex justify-center items-center p-0 md:p-4">
 
   <!-- Mobile Frame Container -->
-  <div class="w-full max-w-md bg-white min-h-screen md:min-h-[844px] md:max-h-[844px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative border-4 border-transparent md:border-black">
-    
-    <!-- Top Bar -->
-    <div class="px-6 pt-6 pb-2 flex justify-between items-center">
-      <span class="font-semibold text-sm">9:41</span>
-      <div class="flex gap-1">
-        <i class="fa-solid font-bold text-xs">•••</i>
-      </div>
-    </div>
+  <div class="w-full max-w-md bg-white min-h-screen md:min-h-[844px] md:max-h-[844px] md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative">
 
     <!-- Header -->
-    <div class="px-6 pt-2 pb-4">
+    <div class="px-6 pt-8 pb-4">
       <h1 class="text-3xl font-bold text-gray-900">Il mio ricettario</h1>
       <p id="recipe-count" class="text-gray-400 text-sm mt-1">0 ricette salvate</p>
     </div>
@@ -66,6 +58,39 @@
     <button onclick="toggleModal(true)" class="absolute bottom-6 right-6 bg-emerald-400 hover:bg-emerald-500 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition">
       <i class="fa-solid fa-plus"></i>
     </button>
+
+    <!-- Scheda Ricetta Singola -->
+    <div id="recipe-detail" class="absolute inset-0 bg-white hidden flex-col overflow-y-auto z-40">
+      <div class="relative h-64 flex-shrink-0">
+        <img id="rd-image" src="" class="w-full h-full object-cover">
+        <button onclick="closeRecipeDetail()" class="absolute top-6 left-4 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow">
+          <i class="fa-solid fa-chevron-left text-sm"></i>
+        </button>
+      </div>
+
+      <div class="bg-white rounded-t-[28px] -mt-6 relative flex-1 px-6 pt-6 pb-10">
+        <span id="rd-category" class="inline-block bg-emerald-100 text-emerald-700 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3"></span>
+        <h2 id="rd-title" class="text-2xl font-bold text-gray-900 mb-5 leading-tight"></h2>
+
+        <!-- Selettore Porzioni -->
+        <div class="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3 mb-6">
+          <span class="text-sm text-gray-500 leading-tight">Per quante<br>persone?</span>
+          <div class="flex items-center gap-4">
+            <button onclick="adjustServings(-1)" class="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"><i class="fa-solid fa-minus text-xs"></i></button>
+            <span class="font-bold text-sm w-16 text-center leading-tight"><span id="rd-servings">4</span><br><span class="font-normal text-gray-400 text-xs">persone</span></span>
+            <button onclick="adjustServings(1)" class="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></button>
+          </div>
+        </div>
+
+        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Ingredienti</h3>
+        <div id="rd-ingredients" class="divide-y divide-gray-100 mb-6"></div>
+
+        <h3 id="rd-instructions-label" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Preparazione</h3>
+        <ol id="rd-instructions" class="space-y-3 text-sm text-gray-700 mb-6 list-decimal list-inside"></ol>
+
+        <p id="rd-description" class="text-sm text-gray-500 leading-relaxed"></p>
+      </div>
+    </div>
 
   </div>
 
@@ -133,12 +158,12 @@
       }
 
       filtered.forEach(r => {
-        const placeholderImg = "https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=400&q=80";
-        
+        const img = imageForCategory(r.category);
+
         grid.innerHTML += `
-          <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm flex flex-col">
+          <div onclick="openRecipeDetail('${r.id}')" class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm flex flex-col cursor-pointer active:scale-[0.97] transition">
             <div class="relative h-32 bg-gray-200">
-              <img src="${placeholderImg}" class="w-full h-full object-cover">
+              <img src="${img}" class="w-full h-full object-cover">
               <span class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-gray-700">${r.category}</span>
             </div>
             <div class="p-3 flex flex-col justify-between flex-1">
@@ -148,6 +173,18 @@
           </div>
         `;
       });
+    }
+
+    // Immagine di sfondo in base alla categoria (in attesa di foto reali per ricetta)
+    function imageForCategory(category) {
+      const images = {
+        "Primi": "https://images.unsplash.com/photo-1476124369491-e7addf5db371?auto=format&fit=crop&w=800&q=80",
+        "Secondi": "https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=800&q=80",
+        "Dolci": "https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=800&q=80",
+        "Contorni": "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
+        "Antipasti": "https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=800&q=80"
+      };
+      return images[category] || "https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=800&q=80";
     }
 
     function setCategory(cat) {
@@ -164,6 +201,88 @@
 
     function filterRecipes() {
       renderRecipes();
+    }
+
+    // ==========================================
+    // Scheda ricetta singola
+    // ==========================================
+    let currentDetailRecipe = null;
+    let currentServings = 1;
+
+    function openRecipeDetail(id) {
+      const recipe = allRecipes.find(r => r.id === id);
+      if (!recipe) return;
+
+      currentDetailRecipe = recipe;
+      currentServings = recipe.servings || 4;
+
+      document.getElementById("rd-image").src = imageForCategory(recipe.category);
+      document.getElementById("rd-category").innerText = recipe.category;
+      document.getElementById("rd-title").innerText = recipe.title;
+
+      const instructionsLabel = document.getElementById("rd-instructions-label");
+      const instructionsList = document.getElementById("rd-instructions");
+      if (Array.isArray(recipe.instructions) && recipe.instructions.length > 0) {
+        instructionsLabel.classList.remove("hidden");
+        instructionsList.innerHTML = recipe.instructions.map(step => `<li>${step}</li>`).join("");
+      } else {
+        instructionsLabel.classList.add("hidden");
+        instructionsList.innerHTML = "";
+      }
+
+      document.getElementById("rd-description").innerText =
+        recipe.description || `Pronta in circa ${recipe.prep_time_min} minuti.`;
+
+      renderServings();
+
+      const detail = document.getElementById("recipe-detail");
+      detail.classList.remove("hidden");
+      detail.classList.add("flex");
+      detail.scrollTop = 0;
+    }
+
+    function closeRecipeDetail() {
+      const detail = document.getElementById("recipe-detail");
+      detail.classList.add("hidden");
+      detail.classList.remove("flex");
+      currentDetailRecipe = null;
+    }
+
+    function adjustServings(delta) {
+      if (!currentDetailRecipe) return;
+      const next = currentServings + delta;
+      if (next < 1) return;
+      currentServings = next;
+      renderServings();
+    }
+
+    function renderServings() {
+      if (!currentDetailRecipe) return;
+      document.getElementById("rd-servings").innerText = currentServings;
+
+      const baseServings = currentDetailRecipe.servings || 4;
+      const ratio = currentServings / baseServings;
+
+      const list = document.getElementById("rd-ingredients");
+      list.innerHTML = (currentDetailRecipe.ingredients || []).map(ing => {
+        const scaledQty = formatQuantity(ing.quantity * ratio, ing.unit);
+        const unit = ing.unit ? ` ${ing.unit}` : "";
+        return `
+          <div class="flex justify-between items-center py-3 text-sm">
+            <span class="text-gray-700">${ing.name}</span>
+            <span class="font-bold text-gray-900">${scaledQty}${unit}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Arrotonda le quantità scalate in modo leggibile (interi per i "pz")
+    function formatQuantity(value, unit) {
+      if (unit === "pz" || unit === "pezzi") {
+        return Math.max(1, Math.round(value));
+      }
+      const rounded = Math.round(value * 10) / 10;
+      return rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
     }
 
     function toggleModal(show) {
