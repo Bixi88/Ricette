@@ -7,7 +7,7 @@
 
   <!-- PWA Meta Tags & Manifest -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#10b981">
+  <meta name="theme-color" id="theme-color-meta" content="#f3f4f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Ricettario">
@@ -36,6 +36,15 @@
     /* Impedisce lo scroll "elastico" del browser che innesca il refresh della pagina/PWA */
     html, body {
       overscroll-behavior-y: none;
+    }
+
+    /* Sfondo esplicito sull'elemento html: senza questo, durante l'overscroll o dietro
+       alle barre di sistema del telefono resterebbe visibile il bianco di default del browser */
+    html {
+      background-color: #f3f4f6; /* gray-100, uguale al body in tema chiaro */
+    }
+    html.dark {
+      background-color: #030712; /* gray-950, uguale al body in tema scuro */
     }
 
     /* Impedisce la selezione del testo per mantenere l'esperienza da app nativa */
@@ -314,9 +323,15 @@
     // ==========================================
     // Tema chiaro / scuro
     // ==========================================
+    function updateThemeColorMeta(isDark) {
+      const meta = document.getElementById('theme-color-meta');
+      if (meta) meta.setAttribute('content', isDark ? '#030712' : '#f3f4f6');
+    }
+
     function toggleTheme() {
       const isDark = document.documentElement.classList.toggle('dark');
       try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch (e) {}
+      updateThemeColorMeta(isDark);
     }
 
     function filterRecipes() {
@@ -729,6 +744,7 @@
     }
 
     loadRecipes();
+    updateThemeColorMeta(document.documentElement.classList.contains('dark'));
   </script>
 </body>
 </html>
