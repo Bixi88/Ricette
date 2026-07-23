@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Il mio ricettario</title>
+
+  <!-- PWA Meta Tags & Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#10b981">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Ricettario">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3565/3565418.png">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -79,11 +88,19 @@
   </div>
 
   <script>
-    // URL DEL TUO CLOUDFLARE WORKER GIÀ CONFIGURATO
     const WORKER_URL = "https://ricettario-backend.bix20252025.workers.dev";
 
     let allRecipes = [];
     let currentCategory = "Tutti";
+
+    // Registrazione Service Worker per PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Service Worker registrato con successo:', reg.scope))
+          .catch(err => console.error('Errore registrazione Service Worker:', err));
+      });
+    }
 
     // Carica ricette all'avvio
     async function loadRecipes() {
