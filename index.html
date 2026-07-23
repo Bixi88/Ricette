@@ -66,32 +66,38 @@
         <button onclick="closeRecipeDetail()" class="absolute top-6 left-4 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow">
           <i class="fa-solid fa-chevron-left text-sm"></i>
         </button>
+        <button onclick="triggerPhotoChange()" class="absolute top-6 right-4 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow">
+          <i class="fa-solid fa-camera text-sm"></i>
+        </button>
+        <input type="file" id="rd-photo-input" accept="image/*" class="hidden" onchange="onPhotoSelected(event)">
       </div>
 
       <div class="bg-white rounded-t-[28px] -mt-6 relative flex-1 px-6 pt-6 pb-10">
         <span id="rd-category" class="inline-block bg-emerald-100 text-emerald-700 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3"></span>
         <h2 id="rd-title" class="text-2xl font-bold text-gray-900 mb-5 leading-tight"></h2>
 
-        <!-- Selettore Porzioni -->
-        <div class="flex items-center justify-between bg-gray-50 rounded-2xl px-4 py-3 mb-6">
-          <span class="text-sm text-gray-500 leading-tight">Per quante<br>persone?</span>
-          <div class="flex items-center gap-4">
-            <button onclick="adjustServings(-1)" class="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"><i class="fa-solid fa-minus text-xs"></i></button>
-            <span class="font-bold text-sm w-16 text-center leading-tight"><span id="rd-servings">4</span><br><span class="font-normal text-gray-400 text-xs">persone</span></span>
-            <button onclick="adjustServings(1)" class="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></button>
-          </div>
-        </div>
-
         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Ingredienti</h3>
         <div id="rd-ingredients" class="divide-y divide-gray-100 mb-6"></div>
 
         <h3 id="rd-instructions-label" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Preparazione</h3>
-        <ol id="rd-instructions" class="space-y-3 text-sm text-gray-700 mb-6 list-decimal list-inside"></ol>
+        <ol id="rd-instructions" class="space-y-3 text-base font-medium text-gray-800 mb-6 list-decimal list-inside leading-relaxed"></ol>
 
         <p id="rd-description" class="text-sm text-gray-500 leading-relaxed"></p>
       </div>
     </div>
 
+  </div>
+
+  <!-- Popup conferma eliminazione -->
+  <div id="delete-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center hidden z-[60]">
+    <div class="bg-white w-[85%] max-w-xs rounded-3xl p-6 shadow-xl text-center">
+      <h3 class="text-lg font-bold text-gray-900 mb-2">Eliminare la ricetta?</h3>
+      <p id="delete-modal-text" class="text-sm text-gray-500 mb-6">Questa azione non può essere annullata.</p>
+      <div class="flex gap-3">
+        <button onclick="cancelDeleteRecipe()" class="flex-1 bg-gray-100 text-gray-700 font-semibold py-3 rounded-2xl">Annulla</button>
+        <button onclick="confirmDeleteRecipe()" class="flex-1 bg-red-500 text-white font-semibold py-3 rounded-2xl">Elimina</button>
+      </div>
+    </div>
   </div>
 
   <!-- Modal Inserimento Ricetta -->
@@ -158,10 +164,14 @@
       }
 
       filtered.forEach(r => {
-        const img = imageForCategory(r.category);
+        const img = getRecipeImage(r);
 
         grid.innerHTML += `
-          <div onclick="openRecipeDetail('${r.id}')" class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm flex flex-col cursor-pointer active:scale-[0.97] transition">
+          <div onclick="handleCardClick('${r.id}')"
+               onmousedown="startLongPress('${r.id}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()"
+               ontouchstart="startLongPress('${r.id}')" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()"
+               oncontextmenu="return false;"
+               class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm flex flex-col cursor-pointer active:scale-[0.97] transition select-none">
             <div class="relative h-32 bg-gray-200">
               <img src="${img}" class="w-full h-full object-cover">
               <span class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-gray-700">${r.category}</span>
@@ -187,6 +197,15 @@
       return images[category] || "https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=800&q=80";
     }
 
+    // Restituisce la foto personalizzata salvata localmente per una ricetta, altrimenti l'immagine di categoria
+    function getRecipeImage(recipe) {
+      try {
+        const custom = localStorage.getItem(`recipe_photo_${recipe.id}`);
+        if (custom) return custom;
+      } catch (e) {}
+      return imageForCategory(recipe.category);
+    }
+
     function setCategory(cat) {
       currentCategory = cat;
       document.querySelectorAll('.cat-btn').forEach(btn => {
@@ -207,16 +226,14 @@
     // Scheda ricetta singola
     // ==========================================
     let currentDetailRecipe = null;
-    let currentServings = 1;
 
     function openRecipeDetail(id) {
       const recipe = allRecipes.find(r => r.id === id);
       if (!recipe) return;
 
       currentDetailRecipe = recipe;
-      currentServings = recipe.servings || 4;
 
-      document.getElementById("rd-image").src = imageForCategory(recipe.category);
+      document.getElementById("rd-image").src = getRecipeImage(recipe);
       document.getElementById("rd-category").innerText = recipe.category;
       document.getElementById("rd-title").innerText = recipe.title;
 
@@ -233,56 +250,150 @@
       document.getElementById("rd-description").innerText =
         recipe.description || `Pronta in circa ${recipe.prep_time_min} minuti.`;
 
-      renderServings();
+      renderIngredients();
 
       const detail = document.getElementById("recipe-detail");
       detail.classList.remove("hidden");
       detail.classList.add("flex");
       detail.scrollTop = 0;
+
+      // Aggiunge una voce nella cronologia così il tasto "indietro" chiude la ricetta
+      history.pushState({ view: "recipe", id }, "", `#recipe-${id}`);
     }
 
+    // Chiamata dal pulsante freccia: torna indietro nella cronologia,
+    // così il comportamento è identico a quello del tasto back del telefono/browser
     function closeRecipeDetail() {
+      if (history.state && history.state.view === "recipe") {
+        history.back();
+      } else {
+        closeRecipeDetailInternal();
+      }
+    }
+
+    function closeRecipeDetailInternal() {
       const detail = document.getElementById("recipe-detail");
       detail.classList.add("hidden");
       detail.classList.remove("flex");
       currentDetailRecipe = null;
     }
 
-    function adjustServings(delta) {
+    // Gestisce il tasto back hardware/browser: se la scheda ricetta è aperta, la chiude
+    window.addEventListener("popstate", (e) => {
+      if (!e.state || e.state.view !== "recipe") {
+        closeRecipeDetailInternal();
+      }
+    });
+
+    function renderIngredients() {
       if (!currentDetailRecipe) return;
-      const next = currentServings + delta;
-      if (next < 1) return;
-      currentServings = next;
-      renderServings();
-    }
-
-    function renderServings() {
-      if (!currentDetailRecipe) return;
-      document.getElementById("rd-servings").innerText = currentServings;
-
-      const baseServings = currentDetailRecipe.servings || 4;
-      const ratio = currentServings / baseServings;
-
       const list = document.getElementById("rd-ingredients");
       list.innerHTML = (currentDetailRecipe.ingredients || []).map(ing => {
-        const scaledQty = formatQuantity(ing.quantity * ratio, ing.unit);
+        const qty = formatQuantity(ing.quantity, ing.unit);
         const unit = ing.unit ? ` ${ing.unit}` : "";
         return `
-          <div class="flex justify-between items-center py-3 text-sm">
-            <span class="text-gray-700">${ing.name}</span>
-            <span class="font-bold text-gray-900">${scaledQty}${unit}</span>
+          <div class="flex justify-between items-center py-3 text-base">
+            <span class="text-gray-800 font-medium">${ing.name}</span>
+            <span class="font-semibold text-gray-900">${qty}${unit}</span>
           </div>
         `;
       }).join("");
     }
 
-    // Arrotonda le quantità scalate in modo leggibile (interi per i "pz")
+    // Arrotonda le quantità in modo leggibile (interi per i "pz")
     function formatQuantity(value, unit) {
       if (unit === "pz" || unit === "pezzi") {
         return Math.max(1, Math.round(value));
       }
       const rounded = Math.round(value * 10) / 10;
       return rounded % 1 === 0 ? rounded.toFixed(0) : rounded.toFixed(1);
+    }
+
+    // ==========================================
+    // Cambio foto ricetta (salvata localmente sul dispositivo)
+    // ==========================================
+    function triggerPhotoChange() {
+      document.getElementById("rd-photo-input").click();
+    }
+
+    function onPhotoSelected(event) {
+      const file = event.target.files[0];
+      if (!file || !currentDetailRecipe) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result;
+        try {
+          localStorage.setItem(`recipe_photo_${currentDetailRecipe.id}`, dataUrl);
+        } catch (e) {
+          alert("Impossibile salvare la foto (spazio insufficiente).");
+          return;
+        }
+        document.getElementById("rd-image").src = dataUrl;
+      };
+      reader.readAsDataURL(file);
+      event.target.value = "";
+    }
+
+    // ==========================================
+    // Eliminazione ricetta con pressione prolungata
+    // ==========================================
+    let longPressTimer = null;
+    let longPressTriggered = false;
+    let pendingDeleteId = null;
+
+    function startLongPress(id) {
+      longPressTriggered = false;
+      longPressTimer = setTimeout(() => {
+        longPressTriggered = true;
+        openDeleteModal(id);
+      }, 550);
+    }
+
+    function cancelLongPress() {
+      clearTimeout(longPressTimer);
+    }
+
+    function handleCardClick(id) {
+      if (longPressTriggered) {
+        longPressTriggered = false;
+        return;
+      }
+      openRecipeDetail(id);
+    }
+
+    function openDeleteModal(id) {
+      const recipe = allRecipes.find(r => r.id === id);
+      if (!recipe) return;
+      pendingDeleteId = id;
+      document.getElementById("delete-modal-text").innerText = `"${recipe.title}" verrà eliminata definitivamente.`;
+      document.getElementById("delete-modal").classList.remove("hidden");
+    }
+
+    function cancelDeleteRecipe() {
+      pendingDeleteId = null;
+      document.getElementById("delete-modal").classList.add("hidden");
+    }
+
+    async function confirmDeleteRecipe() {
+      if (!pendingDeleteId) return;
+      const id = pendingDeleteId;
+
+      try {
+        const res = await fetch(`${WORKER_URL}/api/recipes/${id}`, { method: "DELETE" });
+        if (!res.ok) throw new Error("Errore eliminazione");
+      } catch (e) {
+        alert("Errore durante l'eliminazione della ricetta");
+        return;
+      }
+
+      try {
+        localStorage.removeItem(`recipe_photo_${id}`);
+      } catch (e) {}
+
+      allRecipes = allRecipes.filter(r => r.id !== id);
+      renderRecipes();
+      cancelDeleteRecipe();
     }
 
     function toggleModal(show) {
