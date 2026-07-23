@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Il mio ricettario</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex justify-center items-center p-0 md:p-4">
+
+  <!-- Mobile Frame Container -->
+  <div class="w-full max-w-md bg-white min-h-screen md:min-h-[844px] md:max-h-[844px] md:rounded-[40px] shadow-2xl overflow-hidden flex flex-col relative border-4 border-transparent md:border-black">
+    
+    <!-- Top Bar -->
+    <div class="px-6 pt-6 pb-2 flex justify-between items-center">
+      <span class="font-semibold text-sm">9:41</span>
+      <div class="flex gap-1">
+        <i class="fa-solid font-bold text-xs">•••</i>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="px-6 pt-2 pb-4">
+      <h1 class="text-3xl font-bold text-gray-900">Il mio ricettario</h1>
+      <p id="recipe-count" class="text-gray-400 text-sm mt-1">0 ricette salvate</p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="px-6 mb-4">
+      <div class="relative flex items-center">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 text-gray-400"></i>
+        <input type="text" id="search-input" onkeyup="filterRecipes()" placeholder="Cerca per ingrediente, es. lenticchie" 
+               class="w-full bg-gray-100 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+      </div>
+    </div>
+
+    <!-- Categories Pills -->
+    <div class="px-6 mb-6 flex gap-2 overflow-x-auto no-scrollbar">
+      <button onclick="setCategory('Tutti')" class="cat-btn bg-black text-white px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Tutti</button>
+      <button onclick="setCategory('Dolci')" class="cat-btn bg-gray-100 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Dolci</button>
+      <button onclick="setCategory('Primi')" class="cat-btn bg-gray-100 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Primi</button>
+      <button onclick="setCategory('Secondi')" class="cat-btn bg-gray-100 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Secondi</button>
+    </div>
+
+    <!-- Recipes Grid -->
+    <div id="recipes-grid" class="px-6 flex-1 overflow-y-auto grid grid-cols-2 gap-4 pb-24">
+      <!-- Le ricette verranno caricate qui dinamicamente -->
+    </div>
+
+    <!-- Floating Action Button (+) -->
+    <button onclick="toggleModal(true)" class="absolute bottom-6 right-6 bg-emerald-400 hover:bg-emerald-500 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+
+  </div>
+
+  <!-- Modal Inserimento Ricetta -->
+  <div id="modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center hidden z-50">
+    <div class="bg-white w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold">Aggiungi nuova ricetta</h3>
+        <button onclick="toggleModal(false)" class="text-gray-400 hover:text-black"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+      <p class="text-sm text-gray-500 mb-4">Incolla il testo grezzo della ricetta. Gemini la analizzerà e la strutturerà automaticamente!</p>
+      
+      <textarea id="raw-recipe-text" rows="6" placeholder="Es: Torta Margherita. Servono 200g di farina, 3 uova, 150g di zucchero. Cuocere a 180 gradi per 40 min..." 
+                class="w-full border rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 mb-4"></textarea>
+
+      <button id="btn-submit" onclick="submitRecipe()" class="w-full bg-emerald-400 hover:bg-emerald-500 text-white font-semibold py-3 rounded-2xl transition flex justify-center items-center gap-2">
+        <span>Elabora con AI</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // URL DEL TUO CLOUDFLARE WORKER GIÀ CONFIGURATO
+    const WORKER_URL = "https://ricettario-backend.bix20252025.workers.dev";
+
+    let allRecipes = [];
+    let currentCategory = "Tutti";
+
+    // Carica ricette all'avvio
+    async function loadRecipes() {
+      try {
+        const res = await fetch(`${WORKER_URL}/api/recipes`);
+        allRecipes = await res.json();
+        renderRecipes();
+      } catch (err) {
+        console.error("Errore nel caricamento delle ricette:", err);
+      }
+    }
+
+    function renderRecipes() {
+      const grid = document.getElementById("recipes-grid");
+      const searchVal = document.getElementById("search-input").value.toLowerCase();
+      grid.innerHTML = "";
+
+      const filtered = allRecipes.filter(r => {
+        const matchCat = currentCategory === "Tutti" || r.category === currentCategory;
+        const matchSearch = r.title.toLowerCase().includes(searchVal) || 
+                            r.ingredients.some(i => i.name.toLowerCase().includes(searchVal));
+        return matchCat && matchSearch;
+      });
+
+      document.getElementById("recipe-count").innerText = `${allRecipes.length} ricette salvate`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-2 text-center text-gray-400 py-10">Nessuna ricetta trovata</div>`;
+        return;
+      }
+
+      filtered.forEach(r => {
+        const placeholderImg = "https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&w=400&q=80";
+        
+        grid.innerHTML += `
+          <div class="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm flex flex-col">
+            <div class="relative h-32 bg-gray-200">
+              <img src="${placeholderImg}" class="w-full h-full object-cover">
+              <span class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-gray-700">${r.category}</span>
+            </div>
+            <div class="p-3 flex flex-col justify-between flex-1">
+              <h4 class="font-bold text-sm text-gray-900 leading-tight mb-2">${r.title}</h4>
+              <p class="text-xs text-gray-400"><i class="fa-regular fa-clock mr-1"></i>${r.prep_time_min} min</p>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function setCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        if(btn.innerText === cat) {
+          btn.className = "cat-btn bg-black text-white px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
+        } else {
+          btn.className = "cat-btn bg-gray-100 text-gray-600 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
+        }
+      });
+      renderRecipes();
+    }
+
+    function filterRecipes() {
+      renderRecipes();
+    }
+
+    function toggleModal(show) {
+      document.getElementById("modal").classList.toggle("hidden", !show);
+    }
+
+    async function submitRecipe() {
+      const text = document.getElementById("raw-recipe-text").value.trim();
+      if (!text) return alert("Inserisci il testo della ricetta");
+
+      const btn = document.getElementById("btn-submit");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Elaborazione Gemini...`;
+
+      try {
+        const res = await fetch(`${WORKER_URL}/api/parse-recipe`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rawText: text })
+        });
+
+        if (res.ok) {
+          document.getElementById("raw-recipe-text").value = "";
+          toggleModal(false);
+          await loadRecipes();
+        } else {
+          alert("Errore nell'elaborazione della ricetta");
+        }
+      } catch (e) {
+        alert("Errore di connessione al worker");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>Elabora con AI</span>`;
+      }
+    }
+
+    loadRecipes();
+  </script>
+</body>
+</html>
