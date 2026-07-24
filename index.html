@@ -389,12 +389,66 @@
       currentDetailRecipe = null;
     }
 
-    // Gestisce il tasto back hardware/browser: se la scheda ricetta è aperta, la chiude
+    // Mantiene sempre una voce "home" in cima alla cronologia. Senza questo,
+    // premendo "indietro" dalla home il browser/l'app non ha più nulla su cui
+    // tornare ed esce mostrando prima una schermata nera di transizione.
+    function ensureHomeHistoryEntry() {
+      if (!history.state || history.state.view !== "recipe") {
+        history.pushState({ view: "home" }, "", location.pathname + location.search);
+      }
+    }
+
+    // ==========================================
+    // "Premi di nuovo per uscire" (come Instagram)
+    // ==========================================
+    let exitConfirmArmed = false;
+    let exitConfirmTimer = null;
+    const EXIT_CONFIRM_WINDOW_MS = 2000;
+
+    function showExitToast() {
+      const frame = document.getElementById("recipe-detail").parentElement;
+      let toast = document.getElementById("exit-toast");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "exit-toast";
+        toast.innerText = "Premi di nuovo per uscire";
+        toast.className = "absolute left-1/2 -translate-x-1/2 bottom-24 bg-gray-900/90 dark:bg-gray-100/90 text-white dark:text-gray-900 text-sm font-medium px-4 py-2.5 rounded-full shadow-lg z-[70] opacity-0 transition-opacity duration-200 pointer-events-none whitespace-nowrap";
+        frame.appendChild(toast);
+      }
+      // Forza il reflow cosi' il fade-in riparte anche se il toast era già visibile
+      void toast.offsetHeight;
+      toast.classList.remove("opacity-0");
+      clearTimeout(toast._hideTimer);
+      toast._hideTimer = setTimeout(() => toast.classList.add("opacity-0"), EXIT_CONFIRM_WINDOW_MS);
+    }
+
+    // Gestisce il tasto back hardware/browser
     window.addEventListener("popstate", (e) => {
-      if (!e.state || e.state.view !== "recipe") {
-        closeRecipeDetailInternal();
+      if (e.state && e.state.view === "recipe") return;
+
+      const wasShowingRecipe = currentDetailRecipe !== null;
+      closeRecipeDetailInternal();
+
+      if (wasShowingRecipe) {
+        // Il back ha solo chiuso la scheda ricetta: la voce "home" sottostante
+        // è già presente in cronologia, nessuna azione extra necessaria.
+        return;
+      }
+
+      // Eravamo già sulla home: gestisci il doppio back per uscire davvero
+      if (exitConfirmArmed) {
+        clearTimeout(exitConfirmTimer);
+        exitConfirmArmed = false;
+        setTimeout(() => history.back(), 0); // seconda pressione confermata: esce per davvero
+      } else {
+        exitConfirmArmed = true;
+        showExitToast();
+        ensureHomeHistoryEntry(); // resta pronta un'altra voce per assorbire back accidentali
+        exitConfirmTimer = setTimeout(() => { exitConfirmArmed = false; }, EXIT_CONFIRM_WINDOW_MS);
       }
     });
+
+    ensureHomeHistoryEntry();
 
     // ==========================================
     // Swipe verso il basso per chiudere la scheda ricetta
