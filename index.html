@@ -110,7 +110,8 @@
     </button>
 
     <!-- Scheda Ricetta Singola -->
-    <div id="recipe-detail" class="absolute inset-0 bg-white dark:bg-gray-900 flex flex-col overflow-y-auto overscroll-contain z-40 translate-y-full transition-transform duration-300 ease-out">
+    <div id="recipe-detail" class="absolute inset-0 bg-white dark:bg-gray-900 flex flex-col overflow-y-auto overscroll-contain z-40 translate-y-full transition-transform duration-300 ease-out"
+         ontouchstart="onDetailTouchStart(event)" ontouchmove="onDetailTouchMove(event)" ontouchend="onDetailTouchEnd(event)"
       <div class="relative h-64 flex-shrink-0">
         <img id="rd-image" src="" class="w-full h-full object-cover">
         <button onclick="closeRecipeDetail()" class="absolute top-6 left-4 w-9 h-9 bg-white/90 dark:bg-gray-800/90 rounded-full flex items-center justify-center shadow">
@@ -394,6 +395,53 @@
         closeRecipeDetailInternal();
       }
     });
+
+    // ==========================================
+    // Swipe verso il basso per chiudere la scheda ricetta
+    // (attivo solo quando il contenuto è già scrollato in cima)
+    // ==========================================
+    let rdTouchStartY = 0;
+    let rdTouchCurrentY = 0;
+    let rdIsDraggingToClose = false;
+    const RD_CLOSE_THRESHOLD = 90; // px di swipe necessari per chiudere
+
+    function onDetailTouchStart(e) {
+      rdTouchStartY = e.touches[0].clientY;
+      rdTouchCurrentY = rdTouchStartY;
+      rdIsDraggingToClose = false;
+    }
+
+    function onDetailTouchMove(e) {
+      const detail = document.getElementById("recipe-detail");
+      rdTouchCurrentY = e.touches[0].clientY;
+      const deltaY = rdTouchCurrentY - rdTouchStartY;
+
+      // Si attiva solo se il contenuto è già in cima e il dito si muove verso il basso
+      if (detail.scrollTop <= 0 && deltaY > 0) {
+        rdIsDraggingToClose = true;
+        e.preventDefault(); // evita il rimbalzo/scroll della pagina mentre si trascina
+        const dragDistance = Math.min(deltaY, 300);
+        detail.style.transition = "none";
+        detail.style.transform = `translateY(${dragDistance}px)`;
+      }
+    }
+
+    function onDetailTouchEnd() {
+      const detail = document.getElementById("recipe-detail");
+      const deltaY = rdTouchCurrentY - rdTouchStartY;
+
+      // Ripristina la transizione originale (quella usata per l'animazione top-down)
+      detail.style.transition = "";
+      detail.style.transform = "";
+
+      if (rdIsDraggingToClose && deltaY > RD_CLOSE_THRESHOLD) {
+        closeRecipeDetail(); // stessa animazione/flusso del pulsante indietro
+      }
+
+      rdIsDraggingToClose = false;
+      rdTouchStartY = 0;
+      rdTouchCurrentY = 0;
+    }
 
     function renderInstructionsView() {
       if (!currentDetailRecipe) return;
