@@ -44,7 +44,7 @@
       background-color: #f3f4f6; /* gray-100, uguale al body in tema chiaro */
     }
     html.dark {
-      background-color: #030712; /* gray-950, uguale al body in tema scuro */
+      background-color: #070B08; /* verde scuro, uguale al body in tema scuro */
     }
 
     /* Su Android il calcolo di 100vh spesso non tiene conto della barra
@@ -92,10 +92,10 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-950 flex justify-center items-center p-0 md:p-4 transition-colors">
+<body class="bg-gray-100 dark:bg-[#070B08] flex justify-center items-center p-0 md:p-4 transition-colors">
 
   <!-- Mobile Frame Container -->
-  <div class="app-frame w-full max-w-md bg-white dark:bg-gray-900 md:max-h-[844px] md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative transition-colors">
+  <div class="app-frame w-full max-w-md bg-white dark:bg-[#101810] md:max-h-[844px] md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative transition-colors">
 
     <!-- Header -->
     <div class="px-6 pt-8 pb-4 flex items-start justify-between gap-3">
@@ -103,7 +103,7 @@
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Il mio ricettario</h1>
       </div>
       <button onclick="toggleTheme()" id="theme-toggle-btn" aria-label="Cambia tema chiaro/scuro"
-              class="w-7 h-4 flex-shrink-0 rounded-full bg-gray-300 dark:bg-emerald-500/80 relative transition-colors duration-300 mt-2">
+              class="w-7 h-4 flex-shrink-0 rounded-full bg-gray-300 dark:bg-[#9CC199] relative transition-colors duration-300 mt-2">
         <span id="theme-toggle-knob"
               class="absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white shadow-md transition-transform duration-300 ease-in-out dark:translate-x-3"></span>
       </button>
@@ -114,16 +114,16 @@
       <div class="relative flex items-center">
         <i class="fa-solid fa-magnifying-glass absolute left-4 text-gray-400"></i>
         <input type="text" id="search-input" onkeyup="filterRecipes()" placeholder="" 
-               class="w-full bg-gray-100 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-emerald-400">
+               class="w-full bg-gray-100 dark:bg-[#1B261C] dark:text-white dark:placeholder-gray-500 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6B4C] dark:focus:ring-[#9CC199]">
       </div>
     </div>
 
     <!-- Categories Pills -->
     <div class="px-6 mb-6 flex gap-2 overflow-x-auto no-scrollbar">
-      <button onclick="setCategory('Tutti')" class="cat-btn bg-black dark:bg-white text-white dark:text-black px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Tutti</button>
-      <button onclick="setCategory('Dolci')" class="cat-btn bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Dolci</button>
-      <button onclick="setCategory('Primi')" class="cat-btn bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Primi</button>
-      <button onclick="setCategory('Secondi')" class="cat-btn bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Secondi</button>
+      <button onclick="setCategory('Tutti')" class="cat-btn bg-[#4F6B4C] dark:bg-[#9CC199] text-white dark:text-[#14200F] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Tutti</button>
+      <button onclick="setCategory('Dolci')" class="cat-btn bg-gray-100 dark:bg-[#1B261C] text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Dolci</button>
+      <button onclick="setCategory('Primi')" class="cat-btn bg-gray-100 dark:bg-[#1B261C] text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Primi</button>
+      <button onclick="setCategory('Secondi')" class="cat-btn bg-gray-100 dark:bg-[#1B261C] text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Secondi</button>
     </div>
 
     <!-- Banner modalità offline (mostrato quando si usano le ricette dalla cache locale) -->
@@ -137,38 +137,38 @@
     </div>
 
     <!-- Floating Action Button (+) -->
-    <button onclick="toggleModal(true)" class="absolute right-6 bg-emerald-400 hover:bg-emerald-500 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition" style="bottom: max(1.5rem, env(safe-area-inset-bottom) + 1rem);">
+    <button onclick="toggleModal(true)" class="absolute right-6 bg-[#4F6B4C] hover:bg-[#3F5A3C] dark:bg-[#9CC199] dark:hover:bg-[#86AD83] text-white dark:text-[#14200F] w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl transition" style="bottom: max(1.5rem, env(safe-area-inset-bottom) + 1rem);">
       <i class="fa-solid fa-plus"></i>
     </button>
 
     <!-- Scheda Ricetta Singola -->
-    <div id="recipe-detail" class="absolute inset-0 bg-white dark:bg-gray-900 flex flex-col overflow-y-auto overscroll-contain z-40 translate-y-full transition-transform duration-300 ease-out"
+    <div id="recipe-detail" class="absolute inset-0 bg-white dark:bg-[#101810] flex flex-col overflow-y-auto overscroll-contain z-40 translate-y-full transition-transform duration-300 ease-out"
          ontouchstart="onDetailTouchStart(event)" ontouchmove="onDetailTouchMove(event)" ontouchend="onDetailTouchEnd(event)">
       <div class="relative h-64 flex-shrink-0">
         <img id="rd-image" src="" class="w-full h-full object-cover">
-        <button onclick="closeRecipeDetail()" class="absolute top-6 left-4 w-9 h-9 bg-white/90 dark:bg-gray-800/90 rounded-full flex items-center justify-center shadow">
+        <button onclick="closeRecipeDetail()" class="absolute top-6 left-4 w-9 h-9 bg-white/90 dark:bg-[#1B261C]/90 rounded-full flex items-center justify-center shadow">
           <i class="fa-solid fa-chevron-left text-sm dark:text-white"></i>
         </button>
-        <button onclick="triggerPhotoChange()" class="absolute top-6 right-4 w-9 h-9 bg-white/90 dark:bg-gray-800/90 rounded-full flex items-center justify-center shadow">
+        <button onclick="triggerPhotoChange()" class="absolute top-6 right-4 w-9 h-9 bg-white/90 dark:bg-[#1B261C]/90 rounded-full flex items-center justify-center shadow">
           <i class="fa-solid fa-camera text-sm dark:text-white"></i>
         </button>
-        <button id="rd-edit-btn" onclick="enterEditMode()" class="absolute top-6 right-16 w-9 h-9 bg-white/90 dark:bg-gray-800/90 rounded-full flex items-center justify-center shadow">
+        <button id="rd-edit-btn" onclick="enterEditMode()" class="absolute top-6 right-16 w-9 h-9 bg-white/90 dark:bg-[#1B261C]/90 rounded-full flex items-center justify-center shadow">
           <i class="fa-solid fa-pen text-sm dark:text-white"></i>
         </button>
         <input type="file" id="rd-photo-input" accept="image/*" class="hidden" onchange="onPhotoSelected(event)">
       </div>
 
-      <div class="bg-white dark:bg-gray-900 rounded-t-[28px] -mt-6 relative flex-1 px-6 pt-6 pb-10" style="padding-bottom: max(2.5rem, env(safe-area-inset-bottom) + 1.5rem);">
+      <div class="bg-white dark:bg-[#101810] rounded-t-[28px] -mt-6 relative flex-1 px-6 pt-6 pb-10" style="padding-bottom: max(2.5rem, env(safe-area-inset-bottom) + 1.5rem);">
 
         <div id="rd-edit-actions" class="hidden gap-3 mb-4">
-          <button onclick="cancelEditMode()" class="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-2xl">Annulla</button>
-          <button id="rd-save-btn" onclick="saveRecipeEdits()" class="flex-1 bg-emerald-400 hover:bg-emerald-500 text-white font-semibold py-3 rounded-2xl flex items-center justify-center gap-2">
+          <button onclick="cancelEditMode()" class="flex-1 bg-gray-100 dark:bg-[#1B261C] text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-2xl">Annulla</button>
+          <button id="rd-save-btn" onclick="saveRecipeEdits()" class="flex-1 bg-[#4F6B4C] hover:bg-[#3F5A3C] dark:bg-[#9CC199] dark:hover:bg-[#86AD83] text-white dark:text-[#14200F] font-semibold py-3 rounded-2xl flex items-center justify-center gap-2">
             <i class="fa-solid fa-check"></i> Salva
           </button>
         </div>
 
-        <span id="rd-category" class="inline-block bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3"></span>
-        <select id="rd-category-select" class="hidden border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-3 py-2 text-sm mb-3">
+        <span id="rd-category" class="inline-block bg-[#DCE6DA] dark:bg-[#2F402C]/55 text-[#33452F] dark:text-[#B9D2B0] text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3"></span>
+        <select id="rd-category-select" class="hidden border dark:border-[#3A4D3C] dark:bg-[#1B261C] dark:text-white rounded-xl px-3 py-2 text-sm mb-3">
           <option value="Antipasti">Antipasti</option>
           <option value="Primi">Primi</option>
           <option value="Secondi">Secondi</option>
@@ -177,16 +177,16 @@
         </select>
 
         <h2 id="rd-title" class="text-2xl font-bold text-gray-900 dark:text-white mb-5 leading-tight"></h2>
-        <input id="rd-title-input" type="text" class="hidden w-full border dark:border-gray-700 dark:bg-gray-800 rounded-xl px-3 py-2 text-xl font-bold text-gray-900 dark:text-white mb-5">
+        <input id="rd-title-input" type="text" class="hidden w-full border dark:border-[#3A4D3C] dark:bg-[#1B261C] rounded-xl px-3 py-2 text-xl font-bold text-gray-900 dark:text-white mb-5">
 
         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Ingredienti</h3>
-        <div id="rd-ingredients" class="divide-y divide-gray-100 dark:divide-gray-800 mb-6"></div>
+        <div id="rd-ingredients" class="divide-y divide-gray-100 dark:divide-[#1B261C] mb-6"></div>
 
         <h3 id="rd-instructions-label" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Preparazione</h3>
         <ol id="rd-instructions" class="space-y-3 text-base font-medium text-gray-800 dark:text-gray-200 mb-6 list-decimal list-inside leading-relaxed"></ol>
 
         <p id="rd-description" class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed"></p>
-        <textarea id="rd-description-input" rows="3" class="hidden w-full border dark:border-gray-700 dark:bg-gray-800 rounded-xl px-3 py-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed"></textarea>
+        <textarea id="rd-description-input" rows="3" class="hidden w-full border dark:border-[#3A4D3C] dark:bg-[#1B261C] rounded-xl px-3 py-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed"></textarea>
       </div>
     </div>
 
@@ -194,7 +194,7 @@
 
   <!-- Popup conferma eliminazione -->
   <div id="delete-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center hidden z-[60]">
-    <div class="bg-white dark:bg-gray-800 w-[85%] max-w-xs rounded-3xl p-6 shadow-xl text-center">
+    <div class="bg-white dark:bg-[#1B261C] w-[85%] max-w-xs rounded-3xl p-6 shadow-xl text-center">
       <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Eliminare la ricetta?</h3>
       <p id="delete-modal-text" class="text-sm text-gray-500 dark:text-gray-400 mb-6">Questa azione non può essere annullata.</p>
       <div class="flex gap-3">
@@ -206,17 +206,17 @@
 
   <!-- Modal Inserimento Ricetta -->
   <div id="modal" onclick="onModalBackdropClick(event)" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center hidden opacity-0 transition-opacity duration-300 ease-out z-50">
-    <div id="modal-panel" class="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-xl max-h-[90vh] overflow-y-auto translate-y-full transition-transform duration-300 ease-out">
+    <div id="modal-panel" class="bg-white dark:bg-[#1B261C] w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-xl max-h-[90vh] overflow-y-auto translate-y-full transition-transform duration-300 ease-out">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold dark:text-white">Aggiungi nuova ricetta</h3>
-        <button onclick="toggleModal(false)" class="text-gray-400 hover:text-black dark:hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <button onclick="toggleModal(false)" class="text-gray-400 hover:text-[#4F6B4C] dark:hover:text-[#B9D2B0]"><i class="fa-solid fa-xmark text-xl"></i></button>
       </div>
       <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Incolla il testo grezzo della ricetta. L'AI la analizzerà e la strutturerà automaticamente!</p>
       
       <textarea id="raw-recipe-text" rows="6" placeholder="" 
-                class="w-full border dark:border-gray-600 dark:bg-gray-900 dark:text-white dark:placeholder-gray-500 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 mb-4"></textarea>
+                class="w-full border dark:border-[#4A5F4D] dark:bg-[#101810] dark:text-white dark:placeholder-gray-500 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6B4C] dark:focus:ring-[#9CC199] mb-4"></textarea>
 
-      <button id="btn-submit" onclick="submitRecipe()" class="w-full bg-emerald-400 hover:bg-emerald-500 text-black font-semibold py-3 rounded-2xl transition flex justify-center items-center gap-2">
+      <button id="btn-submit" onclick="submitRecipe()" class="w-full bg-[#4F6B4C] hover:bg-[#3F5A3C] dark:bg-[#9CC199] dark:hover:bg-[#86AD83] text-white dark:text-[#14200F] font-semibold py-3 rounded-2xl transition flex justify-center items-center gap-2">
         <span>Elabora con AI</span>
       </button>
     </div>
@@ -306,10 +306,10 @@
                onmousedown="startLongPress('${r.id}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()"
                ontouchstart="startLongPress('${r.id}')" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()"
                oncontextmenu="return false;"
-               class="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col cursor-pointer active:scale-[0.97] transition select-none">
+               class="bg-white dark:bg-[#1B261C] rounded-3xl overflow-hidden border border-gray-100 dark:border-[#3A4D3C] shadow-sm flex flex-col cursor-pointer active:scale-[0.97] transition select-none">
             <div class="relative h-32 bg-gray-200 dark:bg-gray-700">
               <img src="${img}" class="w-full h-full object-cover">
-              <span class="absolute top-2 left-2 bg-white/90 dark:bg-gray-900/80 backdrop-blur-sm text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-gray-700 dark:text-gray-200">${r.category}</span>
+              <span class="absolute top-2 left-2 bg-white/90 dark:bg-[#101810]/80 backdrop-blur-sm text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-gray-700 dark:text-gray-200">${r.category}</span>
             </div>
             <div class="p-3 flex flex-col justify-between flex-1">
               <h4 class="font-bold text-sm text-gray-900 dark:text-white leading-tight mb-2">${r.title}</h4>
@@ -347,9 +347,9 @@
       currentCategory = cat;
       document.querySelectorAll('.cat-btn').forEach(btn => {
         if(btn.innerText === cat) {
-          btn.className = "cat-btn bg-black dark:bg-white text-white dark:text-black px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
+          btn.className = "cat-btn bg-[#4F6B4C] dark:bg-[#9CC199] text-white dark:text-[#14200F] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
         } else {
-          btn.className = "cat-btn bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
+          btn.className = "cat-btn bg-gray-100 dark:bg-[#1B261C] text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
         }
       });
       renderRecipes();
@@ -719,19 +719,19 @@
         <div class="flex items-center gap-1.5 py-2">
           <input type="text" value="${escapeAttr(ing.name)}" placeholder="Ingrediente"
                  oninput="updateEditIngredient(${idx}, 'name', this.value)"
-                 class="flex-1 min-w-0 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-2 py-2 text-sm">
+                 class="flex-1 min-w-0 border dark:border-[#3A4D3C] dark:bg-[#1B261C] dark:text-white rounded-xl px-2 py-2 text-sm">
           <input type="text" inputmode="text" value="${escapeAttr(ing.quantity ?? "")}" placeholder="Qtà"
                  oninput="updateEditIngredient(${idx}, 'quantity', this.value)"
-                 class="w-14 flex-shrink-0 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-1 py-2 text-sm text-center">
+                 class="w-14 flex-shrink-0 border dark:border-[#3A4D3C] dark:bg-[#1B261C] dark:text-white rounded-xl px-1 py-2 text-sm text-center">
           <input type="text" value="${escapeAttr(ing.unit)}" placeholder="Unità"
                  oninput="updateEditIngredient(${idx}, 'unit', this.value)"
-                 class="w-14 flex-shrink-0 border dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-xl px-1 py-2 text-sm text-center">
+                 class="w-14 flex-shrink-0 border dark:border-[#3A4D3C] dark:bg-[#1B261C] dark:text-white rounded-xl px-1 py-2 text-sm text-center">
           <button onclick="removeIngredientRow(${idx})" class="text-red-400 w-6 h-8 flex items-center justify-center flex-shrink-0">
             <i class="fa-solid fa-trash text-sm"></i>
           </button>
         </div>
       `).join("") + `
-        <button onclick="addIngredientRow()" class="mt-2 text-emerald-600 text-sm font-semibold flex items-center gap-1">
+        <button onclick="addIngredientRow()" class="mt-2 text-[#3F5A3C] dark:text-[#B9D2B0] text-sm font-semibold flex items-center gap-1">
           <i class="fa-solid fa-plus"></i> Aggiungi ingrediente
         </button>
       `;
@@ -766,7 +766,7 @@
         </li>
       `).join("") + `
         <li class="list-none -ml-5">
-          <button onclick="addInstructionStep()" class="text-emerald-600 text-sm font-semibold flex items-center gap-1">
+          <button onclick="addInstructionStep()" class="text-[#3F5A3C] dark:text-[#B9D2B0] text-sm font-semibold flex items-center gap-1">
             <i class="fa-solid fa-plus"></i> Aggiungi passaggio
           </button>
         </li>
