@@ -173,7 +173,7 @@
   </div>
 
   <!-- Modal Inserimento Ricetta -->
-  <div id="modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center hidden opacity-0 transition-opacity duration-300 ease-out z-50">
+  <div id="modal" onclick="onModalBackdropClick(event)" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center hidden opacity-0 transition-opacity duration-300 ease-out z-50">
     <div id="modal-panel" class="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-xl max-h-[90vh] overflow-y-auto translate-y-full transition-transform duration-300 ease-out">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold dark:text-white">Aggiungi nuova ricetta</h3>
@@ -427,13 +427,17 @@
     // Gestisce il tasto back hardware/browser
     window.addEventListener("popstate", (e) => {
       if (e.state && e.state.view === "recipe") return;
+      if (e.state && e.state.view === "modal") return;
 
       const wasShowingRecipe = currentDetailRecipe !== null;
-      closeRecipeDetailInternal();
+      const wasShowingModal = !document.getElementById("modal").classList.contains("hidden");
 
-      if (wasShowingRecipe) {
-        // Il back ha solo chiuso la scheda ricetta: la voce "home" sottostante
-        // è già presente in cronologia, nessuna azione extra necessaria.
+      if (wasShowingRecipe) closeRecipeDetailInternal();
+      if (wasShowingModal) closeModalInternal();
+
+      if (wasShowingRecipe || wasShowingModal) {
+        // Il back ha solo chiuso una scheda/modale sovrapposto: la voce "home"
+        // sottostante è già presente in cronologia, nessuna azione extra necessaria.
         return;
       }
 
@@ -863,26 +867,61 @@
     }
 
     function toggleModal(show) {
+      if (show) {
+        openModalInternal();
+        // Aggiunge una voce nella cronologia così il tasto "indietro" (anche
+        // quello hardware/gesture del telefono) chiude il modale invece di
+        // uscire dall'app o far comparire il popup "premi di nuovo per uscire".
+        history.pushState({ view: "modal" }, "", "#nuova-ricetta");
+      } else {
+        closeModal();
+      }
+    }
+
+    function openModalInternal() {
       const modal = document.getElementById("modal");
       const panel = document.getElementById("modal-panel");
-      if (show) {
-        modal.classList.remove("hidden");
-        // Forziamo un reflow prima di togliere le classi di partenza (opacity-0 /
-        // translate-y-full): senza questo il browser applicherebbe subito lo
-        // stato finale, saltando l'animazione perché "hidden" e lo stato aperto
-        // cambierebbero nello stesso istante, senza un frame intermedio da cui partire.
-        void modal.offsetWidth;
-        modal.classList.remove("opacity-0");
-        panel.classList.remove("translate-y-full");
+      modal.classList.remove("hidden");
+      // Forziamo un reflow prima di togliere le classi di partenza (opacity-0 /
+      // translate-y-full): senza questo il browser applicherebbe subito lo
+      // stato finale, saltando l'animazione perché "hidden" e lo stato aperto
+      // cambierebbero nello stesso istante, senza un frame intermedio da cui partire.
+      void modal.offsetWidth;
+      modal.classList.remove("opacity-0");
+      panel.classList.remove("translate-y-full");
+    }
+
+    // Chiamata dalla X, dal click sullo sfondo o dopo un salvataggio riuscito:
+    // torna indietro nella cronologia così il comportamento è identico a
+    // quello del tasto back del telefono/browser (la chiusura vera avviene
+    // nel gestore "popstate" qui sotto).
+    function closeModal() {
+      if (history.state && history.state.view === "modal") {
+        history.back();
       } else {
-        modal.classList.add("opacity-0");
-        panel.classList.add("translate-y-full");
-        // Aspettiamo la fine della transizione (300ms, vedi duration-300 nel
-        // markup) prima di nascondere davvero il modale con 'hidden', così lo
-        // slide verso il basso resta visibile invece di sparire di scatto.
-        setTimeout(() => {
-          modal.classList.add("hidden");
-        }, 300);
+        closeModalInternal();
+      }
+    }
+
+    function closeModalInternal() {
+      const modal = document.getElementById("modal");
+      const panel = document.getElementById("modal-panel");
+      modal.classList.add("opacity-0");
+      panel.classList.add("translate-y-full");
+      // Aspettiamo la fine della transizione (300ms, vedi duration-300 nel
+      // markup) prima di nascondere davvero il modale con 'hidden', così lo
+      // slide verso il basso resta visibile invece di sparire di scatto.
+      setTimeout(() => {
+        modal.classList.add("hidden");
+      }, 300);
+    }
+
+    // Click sullo sfondo scuro (fuori dal pannello bianco) = chiudi il modale.
+    // Il controllo target === currentTarget esclude i click che partono da
+    // dentro il pannello e "risalgono" fino al contenitore per bubbling.
+    function onModalBackdropClick(e) {
+      if (e.target === e.currentTarget) {
+        closeModal();
       }
     }
 
