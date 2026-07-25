@@ -47,7 +47,25 @@
       background-color: #030712; /* gray-950, uguale al body in tema scuro */
     }
 
-    /* Impedisce la selezione del testo per mantenere l'esperienza da app nativa */
+    /* Su Android il calcolo di 100vh spesso non tiene conto della barra
+       degli indirizzi del browser, risultando più alto dello spazio
+       realmente visibile: l'ultimo elemento in fondo alla pagina (qui la
+       descrizione della ricetta) finisce così tagliato fuori dall'area
+       scrollabile quando il contenuto è lungo. 100dvh si adatta invece
+       all'area effettivamente visibile in ogni momento. Va dichiarato DOPO
+       min-height:100vh nella stessa regola, così sui browser che non
+       supportano dvh resta valido il fallback a vh (unità sconosciuta =
+       dichiarazione ignorata, non sovrascritta).
+     */
+    body, .app-frame {
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    @media (min-width: 768px) {
+      .app-frame {
+        min-height: 844px;
+      }
+    }
     body {
       -webkit-user-select: none;
       user-select: none;
@@ -60,10 +78,10 @@
     }
   </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-950 min-h-screen flex justify-center items-center p-0 md:p-4 transition-colors">
+<body class="bg-gray-100 dark:bg-gray-950 flex justify-center items-center p-0 md:p-4 transition-colors">
 
   <!-- Mobile Frame Container -->
-  <div class="w-full max-w-md bg-white dark:bg-gray-900 min-h-screen md:min-h-[844px] md:max-h-[844px] md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative transition-colors">
+  <div class="app-frame w-full max-w-md bg-white dark:bg-gray-900 md:max-h-[844px] md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative transition-colors">
 
     <!-- Header -->
     <div class="px-6 pt-8 pb-4 flex items-start justify-between gap-3">
