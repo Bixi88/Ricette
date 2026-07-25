@@ -173,8 +173,8 @@
   </div>
 
   <!-- Modal Inserimento Ricetta -->
-  <div id="modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center hidden z-50">
-    <div class="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+  <div id="modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center hidden opacity-0 transition-opacity duration-300 ease-out z-50">
+    <div id="modal-panel" class="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-xl max-h-[90vh] overflow-y-auto translate-y-full transition-transform duration-300 ease-out">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold dark:text-white">Aggiungi nuova ricetta</h3>
         <button onclick="toggleModal(false)" class="text-gray-400 hover:text-black dark:hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -863,7 +863,27 @@
     }
 
     function toggleModal(show) {
-      document.getElementById("modal").classList.toggle("hidden", !show);
+      const modal = document.getElementById("modal");
+      const panel = document.getElementById("modal-panel");
+      if (show) {
+        modal.classList.remove("hidden");
+        // Forziamo un reflow prima di togliere le classi di partenza (opacity-0 /
+        // translate-y-full): senza questo il browser applicherebbe subito lo
+        // stato finale, saltando l'animazione perché "hidden" e lo stato aperto
+        // cambierebbero nello stesso istante, senza un frame intermedio da cui partire.
+        void modal.offsetWidth;
+        modal.classList.remove("opacity-0");
+        panel.classList.remove("translate-y-full");
+      } else {
+        modal.classList.add("opacity-0");
+        panel.classList.add("translate-y-full");
+        // Aspettiamo la fine della transizione (300ms, vedi duration-300 nel
+        // markup) prima di nascondere davvero il modale con 'hidden', così lo
+        // slide verso il basso resta visibile invece di sparire di scatto.
+        setTimeout(() => {
+          modal.classList.add("hidden");
+        }, 300);
+      }
     }
 
     async function submitRecipe() {
