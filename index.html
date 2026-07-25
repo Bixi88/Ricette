@@ -7,7 +7,7 @@
 
   <!-- PWA Meta Tags & Manifest -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" id="theme-color-meta" content="#f3f4f6">
+  <meta name="theme-color" id="theme-color-meta" content="#F1EAE2">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Ricettario">
@@ -41,10 +41,10 @@
     /* Sfondo esplicito sull'elemento html: senza questo, durante l'overscroll o dietro
        alle barre di sistema del telefono resterebbe visibile il bianco di default del browser */
     html {
-      background-color: #f3f4f6; /* gray-100, uguale al body in tema chiaro */
+      background-color: #F1EAE2; /* avorio caldo, uguale al body in tema chiaro */
     }
     html.dark {
-      background-color: #070B08; /* verde scuro, uguale al body in tema scuro */
+      background-color: #000000; /* nero vero (AMOLED), uguale al body in tema scuro */
     }
 
     /* Su Android il calcolo di 100vh spesso non tiene conto della barra
@@ -90,20 +90,29 @@
       -webkit-user-select: text;
       user-select: text;
     }
+
+    /* Accento secondario terracotta */
+    #rd-instructions li::marker {
+      color: #A8613E;
+      font-weight: 700;
+    }
+    html.dark #rd-instructions li::marker {
+      color: #D99A78;
+    }
   </style>
 </head>
-<body class="bg-gray-100 dark:bg-[#070B08] flex justify-center items-center p-0 md:p-4 transition-colors">
+<body class="bg-[#F1EAE2] dark:bg-black flex justify-center items-center p-0 md:p-4 transition-colors">
 
   <!-- Mobile Frame Container -->
-  <div class="app-frame w-full max-w-md bg-white dark:bg-[#101810] md:max-h-[844px] md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative transition-colors">
+  <div class="app-frame w-full max-w-md bg-white dark:bg-black md:max-h-[844px] md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative transition-colors">
 
     <!-- Header -->
     <div class="px-6 pt-8 pb-4 flex items-start justify-between gap-3">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Il mio ricettario</h1>
+        <h1 class="text-3xl font-bold text-[#2A2420] dark:text-white">Il mio ricettario</h1>
       </div>
       <button onclick="toggleTheme()" id="theme-toggle-btn" aria-label="Cambia tema chiaro/scuro"
-              class="w-7 h-4 flex-shrink-0 rounded-full bg-gray-300 dark:bg-[#9CC199] relative transition-colors duration-300 mt-2">
+              class="w-7 h-4 flex-shrink-0 rounded-full bg-[#D8CABA] dark:bg-[#9CC199] relative transition-colors duration-300 mt-2">
         <span id="theme-toggle-knob"
               class="absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white shadow-md transition-transform duration-300 ease-in-out dark:translate-x-3"></span>
       </button>
@@ -112,18 +121,18 @@
     <!-- Search Bar -->
     <div class="px-6 mb-4">
       <div class="relative flex items-center">
-        <i class="fa-solid fa-magnifying-glass absolute left-4 text-gray-400"></i>
+        <i class="fa-solid fa-magnifying-glass absolute left-4 text-[#A99C8E]"></i>
         <input type="text" id="search-input" onkeyup="filterRecipes()" placeholder="" 
-               class="w-full bg-gray-100 dark:bg-[#1B261C] dark:text-white dark:placeholder-gray-500 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6B4C] dark:focus:ring-[#9CC199]">
+               class="w-full bg-[#F1EAE2] dark:bg-[#201D1A] dark:text-white dark:placeholder-[#8C8175] rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6B4C] dark:focus:ring-[#9CC199]">
       </div>
     </div>
 
     <!-- Categories Pills -->
     <div class="px-6 mb-6 flex gap-2 overflow-x-auto no-scrollbar">
       <button onclick="setCategory('Tutti')" class="cat-btn bg-[#4F6B4C] dark:bg-[#9CC199] text-white dark:text-[#14200F] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Tutti</button>
-      <button onclick="setCategory('Dolci')" class="cat-btn bg-gray-100 dark:bg-[#1B261C] text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Dolci</button>
-      <button onclick="setCategory('Primi')" class="cat-btn bg-gray-100 dark:bg-[#1B261C] text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Primi</button>
-      <button onclick="setCategory('Secondi')" class="cat-btn bg-gray-100 dark:bg-[#1B261C] text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Secondi</button>
+      <button onclick="setCategory('Dolci')" class="cat-btn bg-[#F1EAE2] dark:bg-[#201D1A] text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Dolci</button>
+      <button onclick="setCategory('Primi')" class="cat-btn bg-[#F1EAE2] dark:bg-[#201D1A] text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Primi</button>
+      <button onclick="setCategory('Secondi')" class="cat-btn bg-[#F1EAE2] dark:bg-[#201D1A] text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Secondi</button>
     </div>
 
     <!-- Banner modalità offline (mostrato quando si usano le ricette dalla cache locale) -->
@@ -142,33 +151,33 @@
     </button>
 
     <!-- Scheda Ricetta Singola -->
-    <div id="recipe-detail" class="absolute inset-0 bg-white dark:bg-[#101810] flex flex-col overflow-y-auto overscroll-contain z-40 translate-y-full transition-transform duration-300 ease-out"
+    <div id="recipe-detail" class="absolute inset-0 bg-white dark:bg-black flex flex-col overflow-y-auto overscroll-contain z-40 translate-y-full transition-transform duration-300 ease-out"
          ontouchstart="onDetailTouchStart(event)" ontouchmove="onDetailTouchMove(event)" ontouchend="onDetailTouchEnd(event)">
       <div class="relative h-64 flex-shrink-0">
         <img id="rd-image" src="" class="w-full h-full object-cover">
-        <button onclick="closeRecipeDetail()" class="absolute top-6 left-4 w-9 h-9 bg-white/90 dark:bg-[#1B261C]/90 rounded-full flex items-center justify-center shadow">
+        <button onclick="closeRecipeDetail()" class="absolute top-6 left-4 w-9 h-9 bg-white/90 dark:bg-[#201D1A]/90 rounded-full flex items-center justify-center shadow">
           <i class="fa-solid fa-chevron-left text-sm dark:text-white"></i>
         </button>
-        <button onclick="triggerPhotoChange()" class="absolute top-6 right-4 w-9 h-9 bg-white/90 dark:bg-[#1B261C]/90 rounded-full flex items-center justify-center shadow">
+        <button onclick="triggerPhotoChange()" class="absolute top-6 right-4 w-9 h-9 bg-white/90 dark:bg-[#201D1A]/90 rounded-full flex items-center justify-center shadow">
           <i class="fa-solid fa-camera text-sm dark:text-white"></i>
         </button>
-        <button id="rd-edit-btn" onclick="enterEditMode()" class="absolute top-6 right-16 w-9 h-9 bg-white/90 dark:bg-[#1B261C]/90 rounded-full flex items-center justify-center shadow">
+        <button id="rd-edit-btn" onclick="enterEditMode()" class="absolute top-6 right-16 w-9 h-9 bg-white/90 dark:bg-[#201D1A]/90 rounded-full flex items-center justify-center shadow">
           <i class="fa-solid fa-pen text-sm dark:text-white"></i>
         </button>
         <input type="file" id="rd-photo-input" accept="image/*" class="hidden" onchange="onPhotoSelected(event)">
       </div>
 
-      <div class="bg-white dark:bg-[#101810] rounded-t-[28px] -mt-6 relative flex-1 px-6 pt-6 pb-10" style="padding-bottom: max(2.5rem, env(safe-area-inset-bottom) + 1.5rem);">
+      <div class="bg-white dark:bg-black rounded-t-[28px] -mt-6 relative flex-1 px-6 pt-6 pb-10" style="padding-bottom: max(2.5rem, env(safe-area-inset-bottom) + 1.5rem);">
 
         <div id="rd-edit-actions" class="hidden gap-3 mb-4">
-          <button onclick="cancelEditMode()" class="flex-1 bg-gray-100 dark:bg-[#1B261C] text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-2xl">Annulla</button>
+          <button onclick="cancelEditMode()" class="flex-1 bg-[#F1EAE2] dark:bg-[#201D1A] text-[#52473C] dark:text-[#D9CFC2] font-semibold py-3 rounded-2xl">Annulla</button>
           <button id="rd-save-btn" onclick="saveRecipeEdits()" class="flex-1 bg-[#4F6B4C] hover:bg-[#3F5A3C] dark:bg-[#9CC199] dark:hover:bg-[#86AD83] text-white dark:text-[#14200F] font-semibold py-3 rounded-2xl flex items-center justify-center gap-2">
             <i class="fa-solid fa-check"></i> Salva
           </button>
         </div>
 
         <span id="rd-category" class="inline-block bg-[#DCE6DA] dark:bg-[#2F402C]/55 text-[#33452F] dark:text-[#B9D2B0] text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3"></span>
-        <select id="rd-category-select" class="hidden border dark:border-[#3A4D3C] dark:bg-[#1B261C] dark:text-white rounded-xl px-3 py-2 text-sm mb-3">
+        <select id="rd-category-select" class="hidden border dark:border-[#3A342E] dark:bg-[#201D1A] dark:text-white rounded-xl px-3 py-2 text-sm mb-3">
           <option value="Antipasti">Antipasti</option>
           <option value="Primi">Primi</option>
           <option value="Secondi">Secondi</option>
@@ -176,17 +185,17 @@
           <option value="Dolci">Dolci</option>
         </select>
 
-        <h2 id="rd-title" class="text-2xl font-bold text-gray-900 dark:text-white mb-5 leading-tight"></h2>
-        <input id="rd-title-input" type="text" class="hidden w-full border dark:border-[#3A4D3C] dark:bg-[#1B261C] rounded-xl px-3 py-2 text-xl font-bold text-gray-900 dark:text-white mb-5">
+        <h2 id="rd-title" class="text-2xl font-bold text-[#2A2420] dark:text-white mb-5 leading-tight"></h2>
+        <input id="rd-title-input" type="text" class="hidden w-full border dark:border-[#3A342E] dark:bg-[#201D1A] rounded-xl px-3 py-2 text-xl font-bold text-[#2A2420] dark:text-white mb-5">
 
-        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Ingredienti</h3>
-        <div id="rd-ingredients" class="divide-y divide-gray-100 dark:divide-[#1B261C] mb-6"></div>
+        <h3 class="text-xs font-bold text-[#A99C8E] uppercase tracking-wider mb-2">Ingredienti</h3>
+        <div id="rd-ingredients" class="divide-y divide-[#EEE4D8] dark:divide-[#26332A] mb-6"></div>
 
-        <h3 id="rd-instructions-label" class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Preparazione</h3>
-        <ol id="rd-instructions" class="space-y-3 text-base font-medium text-gray-800 dark:text-gray-200 mb-6 list-decimal list-inside leading-relaxed"></ol>
+        <h3 id="rd-instructions-label" class="text-xs font-bold text-[#A99C8E] uppercase tracking-wider mb-2">Preparazione</h3>
+        <ol id="rd-instructions" class="space-y-3 text-base font-medium text-[#3A322A] dark:text-[#D9CFC2] mb-6 list-decimal list-inside leading-relaxed"></ol>
 
-        <p id="rd-description" class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed"></p>
-        <textarea id="rd-description-input" rows="3" class="hidden w-full border dark:border-[#3A4D3C] dark:bg-[#1B261C] rounded-xl px-3 py-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed"></textarea>
+        <p id="rd-description" class="text-sm text-[#8C7F72] dark:text-[#A69A8C] leading-relaxed"></p>
+        <textarea id="rd-description-input" rows="3" class="hidden w-full border dark:border-[#3A342E] dark:bg-[#201D1A] rounded-xl px-3 py-2 text-sm text-[#6E6255] dark:text-[#C7BBAD] leading-relaxed"></textarea>
       </div>
     </div>
 
@@ -194,11 +203,11 @@
 
   <!-- Popup conferma eliminazione -->
   <div id="delete-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center hidden z-[60]">
-    <div class="bg-white dark:bg-[#1B261C] w-[85%] max-w-xs rounded-3xl p-6 shadow-xl text-center">
-      <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Eliminare la ricetta?</h3>
-      <p id="delete-modal-text" class="text-sm text-gray-500 dark:text-gray-400 mb-6">Questa azione non può essere annullata.</p>
+    <div class="bg-white dark:bg-[#201D1A] w-[85%] max-w-xs rounded-3xl p-6 shadow-xl text-center">
+      <h3 class="text-lg font-bold text-[#2A2420] dark:text-white mb-2">Eliminare la ricetta?</h3>
+      <p id="delete-modal-text" class="text-sm text-[#8C7F72] dark:text-[#A69A8C] mb-6">Questa azione non può essere annullata.</p>
       <div class="flex gap-3">
-        <button onclick="cancelDeleteRecipe()" class="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-2xl">Annulla</button>
+        <button onclick="cancelDeleteRecipe()" class="flex-1 bg-[#F1EAE2] dark:bg-[#3A322A] text-[#52473C] dark:text-[#D9CFC2] font-semibold py-3 rounded-2xl">Annulla</button>
         <button onclick="confirmDeleteRecipe()" class="flex-1 bg-red-500 text-white font-semibold py-3 rounded-2xl">Elimina</button>
       </div>
     </div>
@@ -206,15 +215,15 @@
 
   <!-- Modal Inserimento Ricetta -->
   <div id="modal" onclick="onModalBackdropClick(event)" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center hidden opacity-0 transition-opacity duration-300 ease-out z-50">
-    <div id="modal-panel" class="bg-white dark:bg-[#1B261C] w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-xl max-h-[90vh] overflow-y-auto translate-y-full transition-transform duration-300 ease-out">
+    <div id="modal-panel" class="bg-white dark:bg-[#201D1A] w-full max-w-md rounded-t-3xl md:rounded-3xl p-6 shadow-xl max-h-[90vh] overflow-y-auto translate-y-full transition-transform duration-300 ease-out">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold dark:text-white">Aggiungi nuova ricetta</h3>
-        <button onclick="toggleModal(false)" class="text-gray-400 hover:text-[#4F6B4C] dark:hover:text-[#B9D2B0]"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <button onclick="toggleModal(false)" class="text-[#A99C8E] hover:text-[#4F6B4C] dark:hover:text-[#B9D2B0]"><i class="fa-solid fa-xmark text-xl"></i></button>
       </div>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Incolla il testo grezzo della ricetta. L'AI la analizzerà e la strutturerà automaticamente!</p>
+      <p class="text-sm text-[#8C7F72] dark:text-[#A69A8C] mb-4">Incolla il testo grezzo della ricetta. L'AI la analizzerà e la strutturerà automaticamente!</p>
       
       <textarea id="raw-recipe-text" rows="6" placeholder="" 
-                class="w-full border dark:border-[#4A5F4D] dark:bg-[#101810] dark:text-white dark:placeholder-gray-500 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6B4C] dark:focus:ring-[#9CC199] mb-4"></textarea>
+                class="w-full border dark:border-[#3A342E] dark:bg-black dark:text-white dark:placeholder-[#8C8175] rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6B4C] dark:focus:ring-[#9CC199] mb-4"></textarea>
 
       <button id="btn-submit" onclick="submitRecipe()" class="w-full bg-[#4F6B4C] hover:bg-[#3F5A3C] dark:bg-[#9CC199] dark:hover:bg-[#86AD83] text-white dark:text-[#14200F] font-semibold py-3 rounded-2xl transition flex justify-center items-center gap-2">
         <span>Elabora con AI</span>
@@ -294,7 +303,7 @@
 
       
       if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-2 text-center text-gray-400 py-10">Nessuna ricetta trovata</div>`;
+        grid.innerHTML = `<div class="col-span-2 text-center text-[#A99C8E] py-10">Nessuna ricetta trovata</div>`;
         return;
       }
 
@@ -306,14 +315,16 @@
                onmousedown="startLongPress('${r.id}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()"
                ontouchstart="startLongPress('${r.id}')" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()"
                oncontextmenu="return false;"
-               class="bg-white dark:bg-[#1B261C] rounded-3xl overflow-hidden border border-gray-100 dark:border-[#3A4D3C] shadow-sm flex flex-col cursor-pointer active:scale-[0.97] transition select-none">
-            <div class="relative h-32 bg-gray-200 dark:bg-gray-700">
+               class="bg-white dark:bg-[#201D1A] rounded-3xl overflow-hidden border border-[#DFC7B4] dark:border-[#59422C] shadow-sm flex flex-col cursor-pointer active:scale-[0.97] transition select-none">
+            <div class="relative h-32 bg-[#E4D9CC] dark:bg-[#3A322A]">
               <img src="${img}" class="w-full h-full object-cover">
-              <span class="absolute top-2 left-2 bg-white/90 dark:bg-[#101810]/80 backdrop-blur-sm text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-gray-700 dark:text-gray-200">${r.category}</span>
+              <span class="absolute top-2 left-2 bg-white/90 dark:bg-black/75 backdrop-blur-sm text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-[#52473C] dark:text-[#D9CFC2]">${r.category}</span>
             </div>
             <div class="p-3 flex flex-col justify-between flex-1">
-              <h4 class="font-bold text-sm text-gray-900 dark:text-white leading-tight mb-2">${r.title}</h4>
-              <p class="text-xs text-gray-400 dark:text-gray-500"><i class="fa-regular fa-clock mr-1"></i>${r.prep_time_min} min</p>
+              <h4 class="font-bold text-sm text-[#2A2420] dark:text-white leading-tight mb-2">${r.title}</h4>
+              <p class="flex items-center gap-1.5 text-xs font-medium text-[#8C7F72] dark:text-[#A69A8C] mt-1">
+                <i class="fa-regular fa-clock text-[#A8613E] dark:text-[#D99A78]"></i>${r.prep_time_min} min
+              </p>
             </div>
           </div>
         `;
@@ -349,7 +360,7 @@
         if(btn.innerText === cat) {
           btn.className = "cat-btn bg-[#4F6B4C] dark:bg-[#9CC199] text-white dark:text-[#14200F] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
         } else {
-          btn.className = "cat-btn bg-gray-100 dark:bg-[#1B261C] text-gray-600 dark:text-gray-300 px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
+          btn.className = "cat-btn bg-[#F1EAE2] dark:bg-[#201D1A] text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
         }
       });
       renderRecipes();
@@ -360,7 +371,7 @@
     // ==========================================
     function updateThemeColorMeta(isDark) {
       const meta = document.getElementById('theme-color-meta');
-      if (meta) meta.setAttribute('content', isDark ? '#030712' : '#f3f4f6');
+      if (meta) meta.setAttribute('content', isDark ? '#000000' : '#F1EAE2');
     }
 
     function toggleTheme() {
@@ -446,7 +457,7 @@
         toast = document.createElement("div");
         toast.id = "exit-toast";
         toast.innerText = "Premi di nuovo per uscire";
-        toast.className = "absolute left-1/2 -translate-x-1/2 bottom-24 bg-gray-900/90 dark:bg-gray-100/90 text-white dark:text-gray-900 text-sm font-medium px-4 py-2.5 rounded-full shadow-lg z-[70] opacity-0 transition-opacity duration-200 pointer-events-none whitespace-nowrap";
+        toast.className = "absolute left-1/2 -translate-x-1/2 bottom-24 bg-[#2A2420]/90 dark:bg-[#F1EAE2]/90 text-white dark:text-[#2A2420] text-sm font-medium px-4 py-2.5 rounded-full shadow-lg z-[70] opacity-0 transition-opacity duration-200 pointer-events-none whitespace-nowrap";
         frame.appendChild(toast);
       }
       // Forza il reflow cosi' il fade-in riparte anche se il toast era già visibile
@@ -557,8 +568,8 @@
         const unit = ing.unit ? ` ${ing.unit}` : "";
         return `
           <div class="flex justify-between items-center py-3 text-base">
-            <span class="text-gray-800 dark:text-gray-200 font-medium">${ing.name}</span>
-            <span class="font-semibold text-gray-900 dark:text-white">${qty}${unit}</span>
+            <span class="text-[#3A322A] dark:text-[#D9CFC2] font-medium">${ing.name}</span>
+            <span class="font-semibold text-[#2A2420] dark:text-white">${qty}${unit}</span>
           </div>
         `;
       }).join("");
@@ -719,13 +730,13 @@
         <div class="flex items-center gap-1.5 py-2">
           <input type="text" value="${escapeAttr(ing.name)}" placeholder="Ingrediente"
                  oninput="updateEditIngredient(${idx}, 'name', this.value)"
-                 class="flex-1 min-w-0 border dark:border-[#3A4D3C] dark:bg-[#1B261C] dark:text-white rounded-xl px-2 py-2 text-sm">
+                 class="flex-1 min-w-0 border dark:border-[#3A342E] dark:bg-[#201D1A] dark:text-white rounded-xl px-2 py-2 text-sm">
           <input type="text" inputmode="text" value="${escapeAttr(ing.quantity ?? "")}" placeholder="Qtà"
                  oninput="updateEditIngredient(${idx}, 'quantity', this.value)"
-                 class="w-14 flex-shrink-0 border dark:border-[#3A4D3C] dark:bg-[#1B261C] dark:text-white rounded-xl px-1 py-2 text-sm text-center">
+                 class="w-14 flex-shrink-0 border dark:border-[#3A342E] dark:bg-[#201D1A] dark:text-white rounded-xl px-1 py-2 text-sm text-center">
           <input type="text" value="${escapeAttr(ing.unit)}" placeholder="Unità"
                  oninput="updateEditIngredient(${idx}, 'unit', this.value)"
-                 class="w-14 flex-shrink-0 border dark:border-[#3A4D3C] dark:bg-[#1B261C] dark:text-white rounded-xl px-1 py-2 text-sm text-center">
+                 class="w-14 flex-shrink-0 border dark:border-[#3A342E] dark:bg-[#201D1A] dark:text-white rounded-xl px-1 py-2 text-sm text-center">
           <button onclick="removeIngredientRow(${idx})" class="text-red-400 w-6 h-8 flex items-center justify-center flex-shrink-0">
             <i class="fa-solid fa-trash text-sm"></i>
           </button>
@@ -757,7 +768,7 @@
       const list = document.getElementById("rd-instructions");
       list.innerHTML = editInstructions.map((step, idx) => `
         <li class="flex items-start gap-2 list-none -ml-5">
-          <span class="text-gray-400 font-bold mt-2">${idx + 1}.</span>
+          <span class="text-[#A99C8E] font-bold mt-2">${idx + 1}.</span>
           <textarea oninput="updateEditInstruction(${idx}, this.value)" rows="2"
                     class="flex-1 border rounded-xl px-3 py-2 text-sm">${escapeHtml(step)}</textarea>
           <button onclick="removeInstructionStep(${idx})" class="text-red-400 w-8 h-8 flex items-center justify-center flex-shrink-0 mt-1">
