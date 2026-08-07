@@ -128,11 +128,12 @@
     </div>
 
     <!-- Categories Pills -->
-    <div class="px-6 mb-6 flex gap-2 overflow-x-auto no-scrollbar">
-      <button onclick="setCategory('Tutti')" class="cat-btn bg-[#4F6B4C] dark:bg-[#9CC199] text-white dark:text-[#14200F] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Tutti</button>
-      <button onclick="setCategory('Dolci')" class="cat-btn bg-[#F1EAE2] dark:bg-[#201D1A] text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Dolci</button>
-      <button onclick="setCategory('Primi')" class="cat-btn bg-[#F1EAE2] dark:bg-[#201D1A] text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Primi</button>
-      <button onclick="setCategory('Secondi')" class="cat-btn bg-[#F1EAE2] dark:bg-[#201D1A] text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap">Secondi</button>
+    <div id="category-pills" class="px-6 mb-6 flex gap-2 overflow-x-auto no-scrollbar relative">
+      <div id="cat-indicator" class="absolute top-0 h-full bg-[#4F6B4C] dark:bg-[#9CC199] rounded-full transition-all duration-300 ease-out z-0" style="left:24px; width:0px;"></div>
+      <button onclick="setCategory('Tutti')" data-cat="Tutti" class="cat-btn relative z-10 text-white dark:text-[#14200F] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Tutti</button>
+      <button onclick="setCategory('Dolci')" data-cat="Dolci" class="cat-btn relative z-10 text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Dolci</button>
+      <button onclick="setCategory('Primi')" data-cat="Primi" class="cat-btn relative z-10 text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Primi</button>
+      <button onclick="setCategory('Secondi')" data-cat="Secondi" class="cat-btn relative z-10 text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Secondi</button>
     </div>
 
     <!-- Banner modalità offline (mostrato quando si usano le ricette dalla cache locale) -->
@@ -366,15 +367,61 @@
     }
 
     function setCategory(cat) {
+      const oldIdx = SWIPE_CATEGORIES.indexOf(currentCategory);
+      const newIdx = SWIPE_CATEGORIES.indexOf(cat);
+      // direzione dello scorrimento: 1 = verso una sezione successiva, -1 = verso una precedente, 0 = nessuna animazione utile
+      const direction = (oldIdx !== -1 && newIdx !== -1 && newIdx !== oldIdx) ? (newIdx > oldIdx ? 1 : -1) : 0;
+
       currentCategory = cat;
       document.querySelectorAll('.cat-btn').forEach(btn => {
-        if(btn.innerText === cat) {
-          btn.className = "cat-btn bg-[#4F6B4C] dark:bg-[#9CC199] text-white dark:text-[#14200F] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
-        } else {
-          btn.className = "cat-btn bg-[#F1EAE2] dark:bg-[#201D1A] text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap";
-        }
+        const isActive = btn.dataset.cat === cat;
+        btn.className = isActive
+          ? "cat-btn relative z-10 text-white dark:text-[#14200F] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200"
+          : "cat-btn relative z-10 text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200";
       });
-      renderRecipes();
+      moveCategoryIndicator(cat);
+
+      if (direction !== 0) {
+        animateRecipesGridChange(direction);
+      } else {
+        renderRecipes();
+      }
+    }
+
+    // Sposta lateralmente la "pillola" verde dietro l'etichetta di categoria attiva
+    function moveCategoryIndicator(cat) {
+      const container = document.getElementById('category-pills');
+      const indicator = document.getElementById('cat-indicator');
+      const btn = container.querySelector(`.cat-btn[data-cat="${cat}"]`);
+      if (!btn || !indicator) return;
+      indicator.style.left = btn.offsetLeft + 'px';
+      indicator.style.width = btn.offsetWidth + 'px';
+    }
+
+    // Anima il cambio di sezione facendo scorrere lateralmente le card delle ricette,
+    // come una transizione a carosello, coerente con la direzione dello swipe/tab scelto
+    let gridAnimTimer = null;
+    function animateRecipesGridChange(direction) {
+      const grid = document.getElementById('recipes-grid');
+      clearTimeout(gridAnimTimer);
+      grid.scrollTop = 0;
+
+      // Fase 1: le card attuali scivolano via nella direzione del cambio
+      grid.style.transition = 'transform 150ms ease-in, opacity 150ms ease-in';
+      grid.style.transform = `translateX(${direction > 0 ? '-24px' : '24px'})`;
+      grid.style.opacity = '0';
+
+      gridAnimTimer = setTimeout(() => {
+        renderRecipes();
+        // Fase 2: le nuove card partono dal lato opposto (senza transizione, "teletrasportate")...
+        grid.style.transition = 'none';
+        grid.style.transform = `translateX(${direction > 0 ? '24px' : '-24px'})`;
+        void grid.offsetWidth; // forza il reflow prima di riattivare la transizione
+        // ...e poi scivolano dolcemente in posizione
+        grid.style.transition = 'transform 200ms ease-out, opacity 200ms ease-out';
+        grid.style.transform = 'translateX(0)';
+        grid.style.opacity = '1';
+      }, 150);
     }
 
     // ==========================================
@@ -1077,6 +1124,9 @@
 
     loadRecipes();
     updateThemeColorMeta(document.documentElement.classList.contains('dark'));
+    // Posiziona la pillola dell'indicatore sulla categoria attiva al primo caricamento
+    moveCategoryIndicator(currentCategory);
+    window.addEventListener('resize', () => moveCategoryIndicator(currentCategory));
   </script>
 </body>
 </html>
