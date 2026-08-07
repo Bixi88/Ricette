@@ -99,31 +99,47 @@
     html.dark #rd-instructions li::marker {
       color: #D99A78;
     }
+
+    /* Rimuove le decorazioni native del browser per input[type=search] (icona "x" di
+       sistema): usiamo il nostro pulsante di chiusura al posto di quello nativo */
+    input[type="search"]::-webkit-search-cancel-button,
+    input[type="search"]::-webkit-search-decoration {
+      -webkit-appearance: none;
+      appearance: none;
+    }
   </style>
 </head>
 <body class="bg-[#F1EAE2] dark:bg-black flex justify-center items-center p-0 md:p-4 transition-colors">
 
   <!-- Mobile Frame Container -->
-  <div class="app-frame w-full max-w-md bg-white dark:bg-black md:max-h-[844px] md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative transition-colors">
+  <div class="app-frame w-full max-w-md bg-white dark:bg-black md:max-h-[844px] md:rounded-[32px] shadow-2xl overflow-hidden flex flex-col relative transition-colors"
+       ontouchstart="onAppFrameTouchStart(event)" ontouchmove="onAppFrameTouchMove(event)" ontouchend="onAppFrameTouchEnd(event)">
 
     <!-- Header -->
-    <div class="px-6 pt-8 pb-4 flex items-start justify-between gap-3">
-      <div>
-        <h1 class="text-3xl font-bold text-[#2A2420] dark:text-white">Il mio ricettario</h1>
+    <div id="app-header" class="px-6 pt-8 pb-4 relative">
+      <div id="header-title-row" class="flex items-center gap-2 transition-opacity duration-200 ease-out">
+        <button onclick="openSideMenu()" id="hamburger-btn" aria-label="Apri menu"
+                class="w-8 h-8 flex-shrink-0 flex items-center justify-center text-[#2A2420] dark:text-white -ml-1">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+        <h1 class="text-3xl font-bold text-[#2A2420] dark:text-white truncate">Il mio ricettario</h1>
       </div>
-      <button onclick="toggleTheme()" id="theme-toggle-btn" aria-label="Cambia tema chiaro/scuro"
-              class="w-7 h-4 flex-shrink-0 rounded-full bg-[#D8CABA] dark:bg-[#9CC199] relative transition-colors duration-300 mt-2">
-        <span id="theme-toggle-knob"
-              class="absolute top-0.5 left-0.5 w-3 h-3 rounded-full bg-white shadow-md transition-transform duration-300 ease-in-out dark:translate-x-3"></span>
-      </button>
-    </div>
 
-    <!-- Search Bar -->
-    <div class="px-6 mb-4">
-      <div class="relative flex items-center">
-        <i class="fa-solid fa-magnifying-glass absolute left-4 text-[#A99C8E]"></i>
-        <input type="text" id="search-input" onkeyup="filterRecipes()" placeholder="" 
-               class="w-full bg-[#F1EAE2] dark:bg-[#201D1A] dark:text-white dark:placeholder-[#8C8175] rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6B4C] dark:focus:ring-[#9CC199]">
+      <!-- Pillola di ricerca: chiusa mostra solo la lente, aperta si allunga verso sinistra -->
+      <div id="search-pill" class="absolute right-6 top-8 h-10 flex items-center bg-[#F1EAE2] dark:bg-[#201D1A] rounded-full overflow-hidden z-10"
+           style="width: 40px; transition: width 260ms cubic-bezier(0.22, 0.61, 0.36, 1);">
+        <button onclick="openSearch()" id="search-toggle-btn" aria-label="Cerca ricette"
+                class="w-10 h-10 flex-shrink-0 flex items-center justify-center text-[#A99C8E] dark:text-[#8C8175]">
+          <i class="fa-solid fa-magnifying-glass text-sm"></i>
+        </button>
+        <input type="search" id="search-input" oninput="filterRecipes()" placeholder="Cerca ricette..."
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               name="ricerca-ricette-non-password" data-lpignore="true" data-form-type="other"
+               class="flex-1 min-w-0 bg-transparent dark:text-white dark:placeholder-[#8C8175] text-sm pr-2 focus:outline-none">
+        <button onclick="closeSearch()" id="search-close-btn" aria-label="Chiudi ricerca"
+                class="hidden w-10 h-10 flex-shrink-0 items-center justify-center text-[#A99C8E] dark:text-[#8C8175]">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
       </div>
     </div>
 
@@ -131,9 +147,9 @@
     <div id="category-pills" class="px-6 mb-6 flex gap-2 overflow-x-auto no-scrollbar relative">
       <div id="cat-indicator" class="absolute top-0 h-full bg-[#4F6B4C] dark:bg-[#9CC199] rounded-full z-0" style="left:24px; width:0px; transition: left 200ms cubic-bezier(0.22, 0.61, 0.36, 1), width 200ms cubic-bezier(0.22, 0.61, 0.36, 1);"></div>
       <button onclick="setCategory('Tutti')" data-cat="Tutti" class="cat-btn relative z-10 text-white dark:text-[#14200F] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Tutti</button>
-      <button onclick="setCategory('Dolci')" data-cat="Dolci" class="cat-btn relative z-10 text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Dolci</button>
       <button onclick="setCategory('Primi')" data-cat="Primi" class="cat-btn relative z-10 text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Primi</button>
       <button onclick="setCategory('Secondi')" data-cat="Secondi" class="cat-btn relative z-10 text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Secondi</button>
+      <button onclick="setCategory('Dolci')" data-cat="Dolci" class="cat-btn relative z-10 text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Dolci</button>
     </div>
 
     <!-- Banner modalità offline (mostrato quando si usano le ricette dalla cache locale) -->
@@ -208,6 +224,36 @@
 
         <p id="rd-description" class="text-sm text-[#8C7F72] dark:text-[#A69A8C] leading-relaxed"></p>
         <textarea id="rd-description-input" rows="3" class="hidden w-full border dark:border-[#3A342E] dark:bg-[#201D1A] rounded-xl px-3 py-2 text-sm text-[#6E6255] dark:text-[#C7BBAD] leading-relaxed"></textarea>
+      </div>
+    </div>
+
+    <!-- Sfondo scuro del menu laterale -->
+    <div id="side-menu-backdrop" onclick="closeSideMenu()"
+         class="absolute inset-0 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 ease-out z-[54]"></div>
+
+    <!-- Menu laterale (Tema, ecc.) -->
+    <div id="side-menu"
+         class="absolute top-0 left-0 h-full w-[78%] max-w-[300px] bg-white dark:bg-[#14110F] shadow-2xl -translate-x-full transition-transform duration-300 ease-out z-[55] flex flex-col"
+         ontouchstart="onSideMenuTouchStart(event)" ontouchmove="onSideMenuTouchMove(event)" ontouchend="onSideMenuTouchEnd(event)">
+      <div class="px-6 pt-8 pb-4 flex items-center justify-between">
+        <h2 class="text-xl font-bold text-[#2A2420] dark:text-white">Menu</h2>
+        <button onclick="closeSideMenu()" aria-label="Chiudi menu"
+                class="w-9 h-9 flex items-center justify-center rounded-full text-[#2A2420] dark:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div class="px-6 pb-6">
+        <h3 class="text-xs font-bold text-[#A99C8E] uppercase tracking-wider mb-3">Tema</h3>
+        <div class="flex gap-2">
+          <button id="theme-option-light" onclick="setTheme('light')"
+                  class="flex-1 py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2">
+            <i class="fa-solid fa-sun"></i> Chiaro
+          </button>
+          <button id="theme-option-dark" onclick="setTheme('dark')"
+                  class="flex-1 py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2">
+            <i class="fa-solid fa-moon"></i> Scuro
+          </button>
+        </div>
       </div>
     </div>
 
@@ -452,7 +498,7 @@
     // ==========================================
     // Swipe orizzontale sulla griglia per cambiare sezione (Tutti/Dolci/...)
     // ==========================================
-    const SWIPE_CATEGORIES = ["Tutti", "Dolci", "Primi", "Secondi"];
+    const SWIPE_CATEGORIES = ["Tutti", "Primi", "Secondi", "Dolci"];
     const CATEGORY_SWIPE_THRESHOLD = 60; // px minimi di swipe orizzontale
     let catSwipeStartX = 0;
     let catSwipeStartY = 0;
@@ -500,21 +546,212 @@
     }
 
     // ==========================================
-    // Tema chiaro / scuro
+    // Tema chiaro / scuro (scelto dal menu laterale)
     // ==========================================
     function updateThemeColorMeta(isDark) {
       const meta = document.getElementById('theme-color-meta');
       if (meta) meta.setAttribute('content', isDark ? '#000000' : '#F1EAE2');
     }
 
-    function toggleTheme() {
-      const isDark = document.documentElement.classList.toggle('dark');
+    const THEME_OPTION_ACTIVE = "flex-1 py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 bg-[#4F6B4C] dark:bg-[#9CC199] text-white dark:text-[#14200F] transition-colors duration-200";
+    const THEME_OPTION_INACTIVE = "flex-1 py-3 rounded-2xl text-sm font-semibold flex items-center justify-center gap-2 bg-[#F1EAE2] dark:bg-[#201D1A] text-[#6E6255] dark:text-[#C7BBAD] transition-colors duration-200";
+
+    function updateThemeOptionStyles() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const lightBtn = document.getElementById('theme-option-light');
+      const darkBtn = document.getElementById('theme-option-dark');
+      if (!lightBtn || !darkBtn) return;
+      lightBtn.className = isDark ? THEME_OPTION_INACTIVE : THEME_OPTION_ACTIVE;
+      darkBtn.className = isDark ? THEME_OPTION_ACTIVE : THEME_OPTION_INACTIVE;
+    }
+
+    function setTheme(theme) {
+      const isDark = theme === 'dark';
+      document.documentElement.classList.toggle('dark', isDark);
       try { localStorage.setItem('theme', isDark ? 'dark' : 'light'); } catch (e) {}
       updateThemeColorMeta(isDark);
+      updateThemeOptionStyles();
     }
 
     function filterRecipes() {
       renderRecipes();
+    }
+
+    // ==========================================
+    // Pillola di ricerca nell'header (si allunga verso sinistra)
+    // ==========================================
+    function openSearch() {
+      const pill = document.getElementById('search-pill');
+      const header = document.getElementById('app-header');
+      const titleRow = document.getElementById('header-title-row');
+      const input = document.getElementById('search-input');
+      const closeBtn = document.getElementById('search-close-btn');
+
+      const expandedWidth = header.clientWidth - 48; // 48 = padding sinistra+destra dell'header (px-6 + px-6)
+      pill.style.width = expandedWidth + 'px';
+
+      titleRow.classList.add('opacity-0', 'pointer-events-none');
+      closeBtn.classList.remove('hidden');
+      closeBtn.classList.add('flex');
+
+      setTimeout(() => input.focus(), 260);
+    }
+
+    function closeSearch() {
+      const pill = document.getElementById('search-pill');
+      const titleRow = document.getElementById('header-title-row');
+      const input = document.getElementById('search-input');
+      const closeBtn = document.getElementById('search-close-btn');
+
+      pill.style.width = '40px';
+      titleRow.classList.remove('opacity-0', 'pointer-events-none');
+      closeBtn.classList.add('hidden');
+      closeBtn.classList.remove('flex');
+
+      input.value = '';
+      input.blur();
+      filterRecipes();
+    }
+
+    // ==========================================
+    // Menu laterale (hamburger): apertura/chiusura e swipe di trascinamento
+    // ==========================================
+    function isSideMenuOpen() {
+      return !document.getElementById('side-menu').classList.contains('-translate-x-full');
+    }
+
+    function openSideMenu() {
+      document.getElementById('side-menu').classList.remove('-translate-x-full');
+      const backdrop = document.getElementById('side-menu-backdrop');
+      backdrop.classList.remove('opacity-0', 'pointer-events-none');
+      updateThemeOptionStyles();
+      history.pushState({ view: "sideMenu" }, "", "#menu");
+    }
+
+    // Chiamata dalla X o dal click sullo sfondo: torna indietro nella cronologia
+    // così il comportamento è identico a quello del tasto back del telefono/browser
+    function closeSideMenu() {
+      if (history.state && history.state.view === "sideMenu") {
+        history.back();
+      } else {
+        closeSideMenuInternal();
+      }
+    }
+
+    function closeSideMenuInternal() {
+      document.getElementById('side-menu').classList.add('-translate-x-full');
+      const backdrop = document.getElementById('side-menu-backdrop');
+      backdrop.classList.add('opacity-0');
+      setTimeout(() => backdrop.classList.add('pointer-events-none'), 300);
+    }
+
+    // Swipe da sinistra verso destra (partendo dal bordo dello schermo) per aprire il menu
+    const SIDE_MENU_EDGE_ZONE = 24; // px dal bordo sinistro entro cui il gesto viene riconosciuto
+    const SIDE_MENU_OPEN_RATIO = 0.35; // frazione della larghezza del menu oltre la quale scatta l'apertura
+    let sideMenuTouchStartX = 0;
+    let sideMenuTouchCurrentX = 0;
+    let sideMenuOpeningDrag = false;
+    let sideMenuWidthPx = 0;
+
+    function onAppFrameTouchStart(e) {
+      sideMenuOpeningDrag = false;
+      if (isSideMenuOpen()) return; // la chiusura è gestita dal listener dedicato sul menu
+      const startX = e.touches[0].clientX;
+      if (startX > SIDE_MENU_EDGE_ZONE) return; // il gesto non parte dal bordo, ignora
+      if (currentDetailRecipe) return; // non interferire con lo swipe della scheda ricetta
+      if (!document.getElementById('modal').classList.contains('hidden')) return;
+
+      sideMenuTouchStartX = startX;
+      sideMenuTouchCurrentX = startX;
+      sideMenuWidthPx = document.getElementById('side-menu').offsetWidth;
+    }
+
+    function onAppFrameTouchMove(e) {
+      if (isSideMenuOpen() || sideMenuTouchStartX === 0) return;
+      sideMenuTouchCurrentX = e.touches[0].clientX;
+      const dx = sideMenuTouchCurrentX - sideMenuTouchStartX;
+      if (dx <= 0) return;
+
+      sideMenuOpeningDrag = true;
+      e.preventDefault();
+      const menu = document.getElementById('side-menu');
+      const backdrop = document.getElementById('side-menu-backdrop');
+      const progress = Math.min(dx / sideMenuWidthPx, 1);
+      menu.style.transition = 'none';
+      menu.style.transform = `translateX(${-100 + progress * 100}%)`;
+      backdrop.classList.remove('pointer-events-none');
+      backdrop.style.transition = 'none';
+      backdrop.style.opacity = String(progress);
+    }
+
+    function onAppFrameTouchEnd() {
+      const menu = document.getElementById('side-menu');
+      const backdrop = document.getElementById('side-menu-backdrop');
+
+      if (sideMenuOpeningDrag) {
+        menu.style.transition = '';
+        menu.style.transform = '';
+        backdrop.style.transition = '';
+        backdrop.style.opacity = '';
+
+        const dx = sideMenuTouchCurrentX - sideMenuTouchStartX;
+        const progress = sideMenuWidthPx ? dx / sideMenuWidthPx : 0;
+        if (progress > SIDE_MENU_OPEN_RATIO) {
+          openSideMenu();
+        } else {
+          closeSideMenuInternal();
+        }
+      }
+
+      sideMenuOpeningDrag = false;
+      sideMenuTouchStartX = 0;
+      sideMenuTouchCurrentX = 0;
+    }
+
+    // Swipe da destra verso sinistra sul menu stesso per chiuderlo trascinando col dito
+    let sideMenuCloseStartX = 0;
+    let sideMenuCloseCurrentX = 0;
+    let sideMenuClosingDrag = false;
+
+    function onSideMenuTouchStart(e) {
+      sideMenuCloseStartX = e.touches[0].clientX;
+      sideMenuCloseCurrentX = sideMenuCloseStartX;
+      sideMenuClosingDrag = false;
+    }
+
+    function onSideMenuTouchMove(e) {
+      sideMenuCloseCurrentX = e.touches[0].clientX;
+      const dx = sideMenuCloseCurrentX - sideMenuCloseStartX;
+      if (dx >= 0) return; // interessa solo il trascinamento verso sinistra (chiusura)
+
+      sideMenuClosingDrag = true;
+      e.preventDefault();
+      const menu = document.getElementById('side-menu');
+      const width = menu.offsetWidth;
+      const progress = Math.min(-dx / width, 1);
+      menu.style.transition = 'none';
+      menu.style.transform = `translateX(${-progress * 100}%)`;
+      const backdrop = document.getElementById('side-menu-backdrop');
+      backdrop.style.transition = 'none';
+      backdrop.style.opacity = String(1 - progress);
+    }
+
+    function onSideMenuTouchEnd() {
+      const menu = document.getElementById('side-menu');
+      const backdrop = document.getElementById('side-menu-backdrop');
+      menu.style.transition = '';
+      menu.style.transform = '';
+      backdrop.style.transition = '';
+      backdrop.style.opacity = '';
+
+      if (sideMenuClosingDrag) {
+        const dx = sideMenuCloseCurrentX - sideMenuCloseStartX;
+        const width = menu.offsetWidth;
+        if (width && (-dx / width) > SIDE_MENU_OPEN_RATIO) {
+          closeSideMenu();
+        }
+      }
+      sideMenuClosingDrag = false;
     }
 
     // ==========================================
@@ -605,15 +842,18 @@
     window.addEventListener("popstate", (e) => {
       if (e.state && e.state.view === "recipe") return;
       if (e.state && e.state.view === "modal") return;
+      if (e.state && e.state.view === "sideMenu") return;
 
       const wasShowingRecipe = currentDetailRecipe !== null;
       const wasShowingModal = !document.getElementById("modal").classList.contains("hidden");
+      const wasShowingSideMenu = isSideMenuOpen();
 
       if (wasShowingRecipe) closeRecipeDetailInternal();
       if (wasShowingModal) closeModalInternal();
+      if (wasShowingSideMenu) closeSideMenuInternal();
 
-      if (wasShowingRecipe || wasShowingModal) {
-        // Il back ha solo chiuso una scheda/modale sovrapposto: la voce "home"
+      if (wasShowingRecipe || wasShowingModal || wasShowingSideMenu) {
+        // Il back ha solo chiuso una scheda/modale/menu sovrapposto: la voce "home"
         // sottostante è già presente in cronologia, nessuna azione extra necessaria.
         return;
       }
@@ -1149,6 +1389,7 @@
 
     loadRecipes();
     updateThemeColorMeta(document.documentElement.classList.contains('dark'));
+    updateThemeOptionStyles();
     // Posiziona la pillola dell'indicatore sulla categoria attiva al primo caricamento
     moveCategoryIndicator(currentCategory);
     window.addEventListener('resize', () => moveCategoryIndicator(currentCategory));
