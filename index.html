@@ -129,7 +129,7 @@
 
     <!-- Categories Pills -->
     <div id="category-pills" class="px-6 mb-6 flex gap-2 overflow-x-auto no-scrollbar relative">
-      <div id="cat-indicator" class="absolute top-0 h-full bg-[#4F6B4C] dark:bg-[#9CC199] rounded-full transition-all duration-300 ease-out z-0" style="left:24px; width:0px;"></div>
+      <div id="cat-indicator" class="absolute top-0 h-full bg-[#4F6B4C] dark:bg-[#9CC199] rounded-full z-0" style="left:24px; width:0px; transition: left 200ms cubic-bezier(0.22, 0.61, 0.36, 1), width 200ms cubic-bezier(0.22, 0.61, 0.36, 1);"></div>
       <button onclick="setCategory('Tutti')" data-cat="Tutti" class="cat-btn relative z-10 text-white dark:text-[#14200F] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Tutti</button>
       <button onclick="setCategory('Dolci')" data-cat="Dolci" class="cat-btn relative z-10 text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Dolci</button>
       <button onclick="setCategory('Primi')" data-cat="Primi" class="cat-btn relative z-10 text-[#6E6255] dark:text-[#C7BBAD] px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200">Primi</button>
@@ -398,30 +398,55 @@
       indicator.style.width = btn.offsetWidth + 'px';
     }
 
-    // Anima il cambio di sezione facendo scorrere lateralmente le card delle ricette,
-    // come una transizione a carosello, coerente con la direzione dello swipe/tab scelto
-    let gridAnimTimer = null;
+    // Anima il cambio di sezione facendo scorrere lateralmente e simultaneamente
+    // sia le card in uscita che quelle in entrata (vero effetto "swipe" a carosello,
+    // niente dissolvenza): la vecchia griglia esce da un lato mentre la nuova entra
+    // dall'altro, nello stesso momento.
+    let gridAnimCleanupTimer = null;
     function animateRecipesGridChange(direction) {
       const grid = document.getElementById('recipes-grid');
-      clearTimeout(gridAnimTimer);
+      const parent = grid.parentElement;
+      clearTimeout(gridAnimCleanupTimer);
+      const oldOutgoing = document.getElementById('recipes-grid-outgoing');
+      if (oldOutgoing) oldOutgoing.remove();
+
+      // Fotografa il contenuto attuale in un clone che scivolerà via
+      const clone = grid.cloneNode(true);
+      clone.id = 'recipes-grid-outgoing';
+      clone.style.position = 'absolute';
+      clone.style.top = grid.offsetTop + 'px';
+      clone.style.left = '0';
+      clone.style.right = '0';
+      clone.style.height = grid.offsetHeight + 'px';
+      clone.style.margin = '0';
+      clone.style.zIndex = '5';
+      clone.style.pointerEvents = 'none';
+      clone.style.transition = 'none';
+      clone.style.transform = 'translateX(0)';
+      parent.appendChild(clone);
+
+      // Prepara la nuova griglia già fuori dallo schermo dal lato d'ingresso,
+      // poi la riempie subito con le ricette della nuova sezione
       grid.scrollTop = 0;
+      grid.style.transition = 'none';
+      grid.style.transform = `translateX(${direction > 0 ? '100%' : '-100%'})`;
+      renderRecipes();
+      void grid.offsetWidth; // forza il reflow prima di animare
 
-      // Fase 1: le card attuali scivolano via nella direzione del cambio
-      grid.style.transition = 'transform 150ms ease-in, opacity 150ms ease-in';
-      grid.style.transform = `translateX(${direction > 0 ? '-24px' : '24px'})`;
-      grid.style.opacity = '0';
+      const EASING = 'cubic-bezier(0.22, 0.61, 0.36, 1)';
+      const DURATION_MS = 200;
 
-      gridAnimTimer = setTimeout(() => {
-        renderRecipes();
-        // Fase 2: le nuove card partono dal lato opposto (senza transizione, "teletrasportate")...
-        grid.style.transition = 'none';
-        grid.style.transform = `translateX(${direction > 0 ? '24px' : '-24px'})`;
-        void grid.offsetWidth; // forza il reflow prima di riattivare la transizione
-        // ...e poi scivolano dolcemente in posizione
-        grid.style.transition = 'transform 200ms ease-out, opacity 200ms ease-out';
+      requestAnimationFrame(() => {
+        clone.style.transition = `transform ${DURATION_MS}ms ${EASING}`;
+        grid.style.transition = `transform ${DURATION_MS}ms ${EASING}`;
+        clone.style.transform = `translateX(${direction > 0 ? '-100%' : '100%'})`;
         grid.style.transform = 'translateX(0)';
-        grid.style.opacity = '1';
-      }, 150);
+      });
+
+      gridAnimCleanupTimer = setTimeout(() => {
+        clone.remove();
+        grid.style.transition = '';
+      }, DURATION_MS + 30);
     }
 
     // ==========================================
