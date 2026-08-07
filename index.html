@@ -118,9 +118,9 @@
     <!-- Header -->
     <div id="app-header" class="px-6 pt-8 pb-4 relative">
       <div id="header-title-row" class="flex items-center gap-2 transition-opacity duration-200 ease-out">
-        <button onclick="openSideMenu()" id="hamburger-btn" aria-label="Apri menu"
+        <button onclick="openSideMenu()" id="hamburger-btn" aria-label="Apri impostazioni"
                 class="w-8 h-8 flex-shrink-0 flex items-center justify-center text-[#2A2420] dark:text-white -ml-1">
-          <i class="fa-solid fa-bars text-lg"></i>
+          <i class="fa-solid fa-equals text-lg"></i>
         </button>
         <h1 class="text-3xl font-bold text-[#2A2420] dark:text-white truncate">Il mio ricettario</h1>
       </div>
@@ -236,8 +236,8 @@
          class="absolute top-0 left-0 h-full w-[78%] max-w-[300px] bg-white dark:bg-[#14110F] shadow-2xl -translate-x-full transition-transform duration-300 ease-out z-[55] flex flex-col"
          ontouchstart="onSideMenuTouchStart(event)" ontouchmove="onSideMenuTouchMove(event)" ontouchend="onSideMenuTouchEnd(event)">
       <div class="px-6 pt-8 pb-4 flex items-center justify-between">
-        <h2 class="text-xl font-bold text-[#2A2420] dark:text-white">Menu</h2>
-        <button onclick="closeSideMenu()" aria-label="Chiudi menu"
+        <h2 class="text-xl font-bold text-[#2A2420] dark:text-white">Impostazioni</h2>
+        <button onclick="closeSideMenu()" aria-label="Chiudi impostazioni"
                 class="w-9 h-9 flex items-center justify-center rounded-full text-[#2A2420] dark:text-white">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
@@ -580,7 +580,15 @@
     // ==========================================
     // Pillola di ricerca nell'header (si allunga verso sinistra)
     // ==========================================
+    let isSearchOpen = false;
+
     function openSearch() {
+      if (isSearchOpen) {
+        document.getElementById('search-input').focus();
+        return;
+      }
+      isSearchOpen = true;
+
       const pill = document.getElementById('search-pill');
       const header = document.getElementById('app-header');
       const titleRow = document.getElementById('header-title-row');
@@ -595,9 +603,28 @@
       closeBtn.classList.add('flex');
 
       setTimeout(() => input.focus(), 260);
+
+      // Aggiunge una voce nella cronologia così il tasto "indietro" (anche quello
+      // hardware/gesture del telefono) chiude prima la ricerca, invece di uscire
+      // subito dall'app o mostrare il popup "premi di nuovo per uscire"
+      history.pushState({ view: "search" }, "", "#ricerca");
     }
 
+    // Chiamata dalla X: torna indietro nella cronologia così il comportamento è
+    // identico a quello del tasto back del telefono/browser (la chiusura vera
+    // avviene nel gestore "popstate" più sotto)
     function closeSearch() {
+      if (history.state && history.state.view === "search") {
+        history.back();
+      } else {
+        closeSearchInternal();
+      }
+    }
+
+    function closeSearchInternal() {
+      if (!isSearchOpen) return;
+      isSearchOpen = false;
+
       const pill = document.getElementById('search-pill');
       const titleRow = document.getElementById('header-title-row');
       const input = document.getElementById('search-input');
@@ -843,18 +870,21 @@
       if (e.state && e.state.view === "recipe") return;
       if (e.state && e.state.view === "modal") return;
       if (e.state && e.state.view === "sideMenu") return;
+      if (e.state && e.state.view === "search") return;
 
       const wasShowingRecipe = currentDetailRecipe !== null;
       const wasShowingModal = !document.getElementById("modal").classList.contains("hidden");
       const wasShowingSideMenu = isSideMenuOpen();
+      const wasShowingSearch = isSearchOpen;
 
       if (wasShowingRecipe) closeRecipeDetailInternal();
       if (wasShowingModal) closeModalInternal();
       if (wasShowingSideMenu) closeSideMenuInternal();
+      if (wasShowingSearch) closeSearchInternal();
 
-      if (wasShowingRecipe || wasShowingModal || wasShowingSideMenu) {
-        // Il back ha solo chiuso una scheda/modale/menu sovrapposto: la voce "home"
-        // sottostante è già presente in cronologia, nessuna azione extra necessaria.
+      if (wasShowingRecipe || wasShowingModal || wasShowingSideMenu || wasShowingSearch) {
+        // Il back ha solo chiuso una scheda/modale/menu/ricerca sovrapposti: la voce
+        // "home" sottostante è già presente in cronologia, nessuna azione extra necessaria.
         return;
       }
 

@@ -1,6 +1,6 @@
 // Service Worker: mette in cache l'app (guscio) per farla aprire anche senza internet.
 // I dati delle ricette restano gestiti dalla cache in localStorage dentro index.html.
-const CACHE_NAME = "ricettario-shell-v6";
+const CACHE_NAME = "ricettario-shell-v7";
 const APP_SHELL = [
   "./",
   "./index.html",
