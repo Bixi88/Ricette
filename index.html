@@ -195,10 +195,8 @@
 
         <span id="rd-category" class="inline-block bg-[#DCE6DA] dark:bg-[#2F402C]/55 text-[#33452F] dark:text-[#B9D2B0] text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3"></span>
         <select id="rd-category-select" class="hidden border dark:border-[#3A342E] dark:bg-[#201D1A] dark:text-white rounded-xl px-3 py-2 text-sm mb-3">
-          <option value="Antipasti">Antipasti</option>
           <option value="Primi">Primi</option>
           <option value="Secondi">Secondi</option>
-          <option value="Contorni">Contorni</option>
           <option value="Dolci">Dolci</option>
         </select>
 
@@ -327,6 +325,17 @@
                             r.ingredients.some(i => i.name.toLowerCase().includes(searchVal));
         return matchCat && matchSearch;
       });
+
+      if (currentCategory === "Tutti") {
+        const CATEGORY_ORDER = ["Primi", "Secondi", "Dolci"];
+        filtered.sort((a, b) => {
+          const ia = CATEGORY_ORDER.indexOf(a.category);
+          const ib = CATEGORY_ORDER.indexOf(b.category);
+          const oa = ia === -1 ? CATEGORY_ORDER.length : ia;
+          const ob = ib === -1 ? CATEGORY_ORDER.length : ib;
+          return oa - ob;
+        });
+      }
 
       
       if (filtered.length === 0) {
