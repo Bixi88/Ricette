@@ -940,7 +940,13 @@
     function renderIngredientsEditable() {
       const list = document.getElementById("rd-ingredients");
       list.innerHTML = editIngredients.map((ing, idx) => `
-        <div class="flex items-center gap-1.5 py-2">
+        <div class="ingredient-edit-row flex items-center gap-1.5 py-2">
+          <span onpointerdown="startIngredientDrag(event, ${idx})"
+                ontouchstart="event.stopPropagation()" ontouchmove="event.stopPropagation()"
+                class="drag-handle text-[#A99C8E] dark:text-[#6B6153] w-6 h-8 flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing"
+                style="touch-action: none;">
+            <i class="fa-solid fa-grip-lines"></i>
+          </span>
           <input type="text" value="${escapeAttr(ing.name)}" placeholder="Ingrediente"
                  oninput="updateEditIngredient(${idx}, 'name', this.value)"
                  class="flex-1 min-w-0 border dark:border-[#3A342E] dark:bg-[#201D1A] dark:text-white rounded-xl px-2 py-2 text-sm">
@@ -959,6 +965,50 @@
           <i class="fa-solid fa-plus"></i> Aggiungi ingrediente
         </button>
       `;
+    }
+
+    // ==========================================
+    // Riordino ingredienti in modalità modifica (tenere premuto sulla lineetta e trascinare)
+    // ==========================================
+    let dragIngredientIndex = null;
+
+    function startIngredientDrag(event, idx) {
+      event.preventDefault();
+      dragIngredientIndex = idx;
+      const row = event.currentTarget.closest(".ingredient-edit-row");
+      if (row) row.classList.add("opacity-60", "scale-[0.98]");
+      document.addEventListener("pointermove", onIngredientDragMove);
+      document.addEventListener("pointerup", endIngredientDrag);
+      document.addEventListener("pointercancel", endIngredientDrag);
+    }
+
+    function onIngredientDragMove(event) {
+      if (dragIngredientIndex === null) return;
+      const list = document.getElementById("rd-ingredients");
+      const rows = [...list.querySelectorAll(".ingredient-edit-row")];
+      const y = event.clientY;
+      const targetIdx = rows.findIndex(row => {
+        const rect = row.getBoundingClientRect();
+        return y >= rect.top && y <= rect.bottom;
+      });
+      if (targetIdx !== -1 && targetIdx !== dragIngredientIndex) {
+        const [moved] = editIngredients.splice(dragIngredientIndex, 1);
+        editIngredients.splice(targetIdx, 0, moved);
+        dragIngredientIndex = targetIdx;
+        renderIngredientsEditable();
+        const newRow = list.querySelectorAll(".ingredient-edit-row")[targetIdx];
+        if (newRow) newRow.classList.add("opacity-60", "scale-[0.98]");
+      }
+    }
+
+    function endIngredientDrag() {
+      if (dragIngredientIndex === null) return;
+      document.removeEventListener("pointermove", onIngredientDragMove);
+      document.removeEventListener("pointerup", endIngredientDrag);
+      document.removeEventListener("pointercancel", endIngredientDrag);
+      const list = document.getElementById("rd-ingredients");
+      list.querySelectorAll(".ingredient-edit-row").forEach(r => r.classList.remove("opacity-60", "scale-[0.98]"));
+      dragIngredientIndex = null;
     }
 
     function updateEditIngredient(idx, field, value) {
