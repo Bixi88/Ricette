@@ -157,7 +157,7 @@
     </div>
 
     <!-- Recipes Grid -->
-    <div id="recipes-grid" class="px-6 flex-1 overflow-y-auto overscroll-contain grid grid-cols-3 auto-rows-min content-start gap-2.5 pb-24"
+    <div id="recipes-grid" class="px-6 flex-1 overflow-y-auto overscroll-contain grid grid-cols-2 auto-rows-min content-start gap-3 pb-24"
          ontouchstart="onCategorySwipeStart(event)" ontouchmove="onCategorySwipeMove(event)" ontouchend="onCategorySwipeEnd(event)">
       <!-- Le ricette verranno caricate qui dinamicamente -->
     </div>
@@ -368,7 +368,7 @@
 
       
       if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-3 text-center text-[#A99C8E] py-10">Nessuna ricetta trovata</div>`;
+        grid.innerHTML = `<div class="col-span-2 text-center text-[#A99C8E] py-10">Nessuna ricetta trovata</div>`;
         return;
       }
 
@@ -382,15 +382,15 @@
                onmousedown="startLongPress('${r.id}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()"
                ontouchstart="startLongPress('${r.id}')" ontouchend="cancelLongPress()" ontouchmove="cancelLongPress()"
                oncontextmenu="return false;"
-               class="bg-white dark:bg-[#201D1A] rounded-2xl overflow-hidden border border-[#DFC7B4] dark:border-[#59422C] shadow-sm flex flex-col cursor-pointer active:scale-[0.97] transition select-none">
-            <div class="relative h-20 bg-[#E4D9CC] dark:bg-[#3A322A]">
+               class="bg-white dark:bg-[#201D1A] rounded-3xl overflow-hidden border border-[#DFC7B4] dark:border-[#59422C] shadow-sm flex flex-col cursor-pointer active:scale-[0.97] transition select-none">
+            <div class="relative h-32 bg-[#E4D9CC] dark:bg-[#3A322A]">
               <img src="${img}" class="w-full h-full object-cover">
-              <span class="cat-badge-blur absolute top-1 left-1 bg-white/90 dark:bg-black/75 backdrop-blur-sm text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider text-[#52473C] dark:text-[#D9CFC2]">${r.category}</span>
-              ${isNew ? `<span class="absolute top-1 right-1 bg-[#4F6B4C] dark:bg-[#9CC199] text-white dark:text-[#14200F] text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">new</span>` : ''}
+              <span class="cat-badge-blur absolute top-2 left-2 bg-white/90 dark:bg-black/75 backdrop-blur-sm text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-[#52473C] dark:text-[#D9CFC2]">${r.category}</span>
+              ${isNew ? `<span class="absolute top-2 right-2 bg-[#4F6B4C] dark:bg-[#9CC199] text-white dark:text-[#14200F] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">new</span>` : ''}
             </div>
-            <div class="p-2 flex flex-col justify-between flex-1">
-              <h4 class="font-bold text-[11px] leading-tight text-[#2A2420] dark:text-white mb-1 line-clamp-2">${r.title}</h4>
-              <p class="flex items-center gap-1 text-[10px] font-medium text-[#8C7F72] dark:text-[#A69A8C] mt-1">
+            <div class="p-3 flex flex-col justify-between flex-1">
+              <h4 class="font-bold text-sm leading-tight text-[#2A2420] dark:text-white mb-2 line-clamp-2">${r.title}</h4>
+              <p class="flex items-center gap-1.5 text-xs font-medium text-[#8C7F72] dark:text-[#A69A8C] mt-1">
                 <i class="fa-regular fa-clock text-[#A8613E] dark:text-[#D99A78]"></i>${r.prep_time_min} min
               </p>
             </div>
